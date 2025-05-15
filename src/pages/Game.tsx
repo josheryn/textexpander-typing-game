@@ -298,6 +298,40 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     setAbbreviationsUsed(0);
   }, [level, user.level, navigate]);
 
+  // Add keyboard event listener to start game on key press when in 'ready' state
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (gameState === 'ready' && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        // Start the game first
+        startGame();
+
+        // Then set the first character in the next tick
+        setTimeout(() => {
+          // Set the typed text directly
+          setTypedText(e.key);
+
+          // Update the input field value
+          if (inputRef.current) {
+            inputRef.current.value = e.key;
+          }
+
+          // Count errors for the first character
+          const targetText = level?.text || '';
+          let errorCount = 0;
+          if (e.key !== targetText[0]) {
+            errorCount = 1;
+          }
+          setErrors(errorCount);
+        }, 0);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [gameState, level]);
+
   // Start the game
   const startGame = () => {
     setGameState('playing');
@@ -382,9 +416,9 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     // Check if the user passed the level
     const passed = calculatedWpm >= level.requiredWPM;
 
-    if (passed && Number(levelId) > user.level) {
+    if (passed) {
       // Level up the user
-      const newLevel = Number(levelId);
+      const newLevel = Math.max(user.level, Number(levelId) + 1);
 
       // Check if there's an abbreviation to unlock
       const abbrevToUnlock = level.unlockableAbbreviation;
