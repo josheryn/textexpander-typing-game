@@ -102,6 +102,35 @@ As you complete levels, you'll unlock TextExpander abbreviations that can be use
 - Level 9: `;conf` → Confirmation message
 - Level 10: `;te` → TextExpander slogan
 
+## Deployment
+
+### Deploying to DigitalOcean App Platform
+
+This project includes configuration for deploying to DigitalOcean App Platform:
+
+1. **Push your code to GitHub**: Make sure your code is in a GitHub repository.
+
+2. **Connect to DigitalOcean App Platform**:
+   - Log in to your DigitalOcean account
+   - Go to the App Platform section
+   - Click "Create App"
+   - Select your GitHub repository
+   - DigitalOcean will automatically detect the app.yaml configuration file
+
+3. **Review and Deploy**:
+   - Review the configuration settings
+   - Click "Deploy to App Platform"
+
+4. **Monitor Deployment**:
+   - DigitalOcean will build and deploy your application
+   - You can monitor the progress in the deployment logs
+
+The deployment configuration is defined in the `.do/app.yaml` file, which specifies:
+- Build command: `npm run build`
+- Output directory: `dist`
+- Environment: Node.js
+- Routing configuration for SPA behavior
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.

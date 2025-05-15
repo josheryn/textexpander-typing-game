@@ -1,0 +1,12 @@
+name: textexpander-typing-game
+static_sites:
+- name: textexpander-typing-game
+  github:
+    branch: main
+    deploy_on_push: true
+  build_command: npm run build
+  output_dir: dist
+  environment_slug: node-js
+  routes:
+    - path: /
+  catchall_document: index.html
