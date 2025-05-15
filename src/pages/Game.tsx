@@ -308,10 +308,6 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
       return;
     }
 
-    // Get available abbreviations for the user's current level
-    const abbrs = getAbbreviationsForLevel(user.level);
-    setAvailableAbbreviations(abbrs);
-
     // Reset game state
     setGameState('ready');
     setTypedText('');
@@ -320,7 +316,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     setAccuracy(100);
     setUnlockedAbbreviation(null);
     setAbbreviationsUsed(0);
-  }, [levelId, user.level, navigate]);
+  }, [levelId, navigate]);
 
   // Update available abbreviations when user level changes
   useEffect(() => {
