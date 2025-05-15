@@ -413,37 +413,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     setWpm(calculatedWpm);
     setAccuracy(calculatedAccuracy);
 
-    // Check if the user passed the level
-    const passed = calculatedWpm >= level.requiredWPM;
-
-    if (passed) {
-      // Level up the user
-      const newLevel = Math.max(user.level, Number(levelId) + 1);
-
-      // Check if there's an abbreviation to unlock
-      const abbrevToUnlock = level.unlockableAbbreviation;
-
-      if (abbrevToUnlock && !user.unlockedAbbreviations.some(a => a.id === abbrevToUnlock.id)) {
-        setUnlockedAbbreviation(abbrevToUnlock);
-
-        // Add the abbreviation to user's unlocked list
-        const updatedUser = {
-          ...user,
-          level: newLevel,
-          unlockedAbbreviations: [...user.unlockedAbbreviations, abbrevToUnlock]
-        };
-        setUser(updatedUser);
-      } else {
-        // Just update the level
-        const updatedUser = {
-          ...user,
-          level: newLevel
-        };
-        setUser(updatedUser);
-      }
-    }
-
-    // Save the score
+    // Create a new score
     const newScore: GameScore = {
       level: Number(levelId),
       wpm: calculatedWpm,
@@ -459,11 +429,31 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     // Keep only top 10 scores
     const topScores = updatedHighScores.slice(0, 10);
 
-    const updatedUser = {
+    // Create a single updated user object with all changes
+    let updatedUser = {
       ...user,
       highScores: topScores
     };
 
+    // Check if the user passed the level
+    const passed = calculatedWpm >= level.requiredWPM;
+
+    if (passed) {
+      // Level up the user
+      const newLevel = Math.max(user.level, Number(levelId) + 1);
+      updatedUser.level = newLevel;
+
+      // Check if there's an abbreviation to unlock
+      const abbrevToUnlock = level.unlockableAbbreviation;
+
+      if (abbrevToUnlock && !user.unlockedAbbreviations.some(a => a.id === abbrevToUnlock.id)) {
+        setUnlockedAbbreviation(abbrevToUnlock);
+        // Add the abbreviation to user's unlocked list
+        updatedUser.unlockedAbbreviations = [...user.unlockedAbbreviations, abbrevToUnlock];
+      }
+    }
+
+    // Set the user with all updates in a single operation
     setUser(updatedUser);
 
     // Add score to global leaderboard
