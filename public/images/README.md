@@ -9,4 +9,4 @@ This directory is where you should place the TextExpander logo image.
 3. The recommended size is approximately 200px width, with appropriate height to maintain aspect ratio
 4. The image should have a transparent background for best results
 
-The logo will be displayed in the header of the application, replacing the text "TextExpander Typing Game".
+The logo will be displayed in the header of the application with the text "Typing Game" appearing next to it. The logo image has the alt text "TextExpander" as a fallback if the image fails to load.

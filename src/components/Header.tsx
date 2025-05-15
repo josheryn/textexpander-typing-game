@@ -36,8 +36,11 @@ const Logo = styled.div`
   }
 
   img {
-    height: 40px;
-    margin-right: 10px;
+    height: 60px;
+  }
+
+  span {
+    margin-left: 10px;
   }
 `;
 
@@ -84,8 +87,8 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
       <HeaderContent>
         <Logo>
           <Link to="/">
-            <img src="/images/textexpander-logo.png" alt="TextExpander Logo" />
-            <span>TextExpander Typing Game</span>
+            <img src="/images/textexpander-logo.png" alt="TextExpander" />
+            <span>Typing Game</span>
           </Link>
         </Logo>
         <Nav>

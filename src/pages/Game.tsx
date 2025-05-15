@@ -303,7 +303,15 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     setAccuracy(100);
     setUnlockedAbbreviation(null);
     setAbbreviationsUsed(0);
-  }, [level, user.level, navigate]);
+  }, [level, navigate]);
+
+  // Update available abbreviations when user level changes
+  useEffect(() => {
+    if (level) {
+      const abbrs = getAbbreviationsForLevel(user.level);
+      setAvailableAbbreviations(abbrs);
+    }
+  }, [user.level, level]);
 
   // Add keyboard event listener to start game on key press when in 'ready' state
   useEffect(() => {

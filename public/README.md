@@ -10,7 +10,7 @@ The TextExpander logo has been added to the application header. Here's how to re
 2. Name the file `textexpander-logo.png` (or use one of these formats: .svg, .jpg, .jpeg)
 3. If using a different filename or format, update the reference in the Header component:
    - Open `/src/components/Header.tsx`
-   - Find the line: `<img src="/images/textexpander-logo.png" alt="TextExpander Logo" />`
+   - Find the line: `<img src="/images/textexpander-logo.png" alt="TextExpander" />`
    - Change the `src` attribute to match your filename
 
 ### Logo Requirements
@@ -21,11 +21,11 @@ The TextExpander logo has been added to the application header. Here's how to re
 
 ### Display Options
 
-The current implementation shows both the logo and the text "TextExpander Typing Game". If you prefer to:
+The current implementation shows the logo image with the text "Typing Game" appearing next to it. The logo image has the alt text "TextExpander" as a fallback if the image fails to load. If you prefer to:
 
-- **Show only the logo**: Remove the `<span>TextExpander Typing Game</span>` line in Header.tsx
-- **Show only text**: Remove the `<img>` tag in Header.tsx
-- **Adjust spacing**: Modify the `margin-right` property in the `img` CSS selector in the Logo styled component
+- **Show only the logo**: Remove the `<span>Typing Game</span>` line in Header.tsx
+- **Show only text**: Remove the `<img>` tag in Header.tsx and modify the span to include the full text
+- **Adjust logo size**: Modify the `height` property in the `img` CSS selector (currently set to 60px)
 
 ## Favicon
 
