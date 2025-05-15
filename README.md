@@ -135,7 +135,7 @@ The deployment configuration is defined in the `.do/app.yaml` file, which specif
 
 If you encounter build issues on DigitalOcean App Platform:
 
-1. **Check Node.js Version**: The app is configured to use Node.js version 16. If you need a different version, update the `NODE_VERSION` environment variable in the `.do/app.yaml` file.
+1. **Check Node.js Version**: The app is configured to use Node.js version 18. If you need a different version, update the `NODE_VERSION` environment variable in the `.do/app.yaml` file.
 
 2. **Build Logs**: Review the build logs in the DigitalOcean App Platform dashboard for specific error messages.
 

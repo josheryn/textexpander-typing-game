@@ -9,7 +9,7 @@ static_sites:
   environment_slug: node-js
   env:
     - key: NODE_VERSION
-      value: 16
+      value: 18
   routes:
     - path: /
-  catchall_document: index.html
+    catchall_document: index.html
