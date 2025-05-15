@@ -4,6 +4,7 @@ export interface User {
   level: number;
   highScores: GameScore[];
   unlockedAbbreviations: Abbreviation[];
+  lastUnlockedAbbreviation?: Abbreviation | null;
 }
 
 // Game related types

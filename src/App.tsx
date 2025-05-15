@@ -33,7 +33,7 @@ const MainContent = styled.main`
 
 function App() {
   const [user, setUser] = useState<User | null>(null)
-  
+
   // Check if user is logged in from localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
@@ -55,7 +55,8 @@ function App() {
       username,
       level: 1,
       highScores: [],
-      unlockedAbbreviations: []
+      unlockedAbbreviations: [],
+      lastUnlockedAbbreviation: null
     }
     setUser(newUser)
   }

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { User, GameScore, Abbreviation } from '../types';
-import { getLevelById, getAbbreviationsForLevel } from '../data/gameData';
+import { getLevelById, getAbbreviationsForLevel, getLevelWithUnlockedAbbreviation } from '../data/gameData';
 
 interface GameProps {
   user: User;
@@ -263,12 +263,21 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
   const navigate = useNavigate();
 
   const [level, setLevel] = useState(getLevelById(Number(levelId)));
+  const [lastUnlockedAbbreviation, setLastUnlockedAbbreviation] = useState<Abbreviation | null>(user.lastUnlockedAbbreviation || null);
 
   // Update level when levelId changes
   useEffect(() => {
     const newLevel = getLevelById(Number(levelId));
-    setLevel(newLevel);
-  }, [levelId]);
+
+    // Check if we have a previously unlocked abbreviation to include in this level
+    if (newLevel && lastUnlockedAbbreviation) {
+      // Modify the level text to include a reference to the last unlocked abbreviation
+      const modifiedLevel = getLevelWithUnlockedAbbreviation(newLevel, lastUnlockedAbbreviation);
+      setLevel(modifiedLevel);
+    } else {
+      setLevel(newLevel);
+    }
+  }, [levelId, lastUnlockedAbbreviation]);
 
   const [gameState, setGameState] = useState<'ready' | 'playing' | 'finished'>('ready');
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -370,14 +379,27 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
     // Check for abbreviation usage
     const lastWord = currentInput.split(' ').pop() || '';
+
+    // Check for exact match or match with a double quote in front
     const matchingAbbreviation = availableAbbreviations.find(abbr => 
-      lastWord === abbr.abbreviation
+      lastWord === abbr.abbreviation || lastWord.endsWith('"' + abbr.abbreviation)
     );
 
     if (matchingAbbreviation) {
-      // Replace the abbreviation with its expansion
-      const withoutAbbr = currentInput.slice(0, currentInput.length - matchingAbbreviation.abbreviation.length);
-      const newText = withoutAbbr + matchingAbbreviation.expansion;
+      // Check if the abbreviation has a double quote in front
+      const hasQuote = lastWord.endsWith('"' + matchingAbbreviation.abbreviation);
+
+      // Calculate the length to remove (abbreviation length + quote if present)
+      const lengthToRemove = hasQuote 
+        ? matchingAbbreviation.abbreviation.length + 1 // +1 for the quote
+        : matchingAbbreviation.abbreviation.length;
+
+      // Replace the abbreviation with its expansion, preserving the quote if needed
+      const withoutAbbr = currentInput.slice(0, currentInput.length - lengthToRemove);
+      const newText = hasQuote 
+        ? withoutAbbr + '"' + matchingAbbreviation.expansion // Keep the quote
+        : withoutAbbr + matchingAbbreviation.expansion;
+
       setTypedText(newText);
       setAbbreviationsUsed(prev => prev + 1);
 
@@ -463,8 +485,11 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
       if (abbrevToUnlock && !user.unlockedAbbreviations.some(a => a.id === abbrevToUnlock.id)) {
         setUnlockedAbbreviation(abbrevToUnlock);
-        // Add the abbreviation to user's unlocked list
+        // Store this as the last unlocked abbreviation to use in the next level
+        setLastUnlockedAbbreviation(abbrevToUnlock);
+        // Add the abbreviation to user's unlocked list and store it as the last unlocked abbreviation
         updatedUser.unlockedAbbreviations = [...user.unlockedAbbreviations, abbrevToUnlock];
+        updatedUser.lastUnlockedAbbreviation = abbrevToUnlock;
       }
     }
 
@@ -505,6 +530,8 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     setAccuracy(100);
     setUnlockedAbbreviation(null);
     setAbbreviationsUsed(0);
+
+    // Don't reset lastUnlockedAbbreviation here, as we want to keep it for the next level
   };
 
   // Navigate to the next level

@@ -172,3 +172,18 @@ export const getAbbreviationById = (id: string): Abbreviation | undefined => {
 export const getAbbreviationsForLevel = (level: number): Abbreviation[] => {
   return abbreviations.filter(abbr => abbr.unlockedAt <= level);
 };
+
+// Helper function to modify level text to include references to newly unlocked abbreviations
+export const getLevelWithUnlockedAbbreviation = (level: GameLevel, unlockedAbbreviation: Abbreviation | null): GameLevel => {
+  if (!unlockedAbbreviation) {
+    return level;
+  }
+
+  // Create a modified version of the level text that includes a reference to the abbreviation
+  const modifiedText = `${level.text} Try using the ${unlockedAbbreviation.abbreviation} abbreviation to type "${unlockedAbbreviation.expansion}" more quickly.`;
+
+  return {
+    ...level,
+    text: modifiedText
+  };
+};
