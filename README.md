@@ -1,0 +1,107 @@
+# TextExpander Typing Game
+
+A web-based typing speed game that helps you improve your typing skills while unlocking TextExpander abbreviations.
+
+## Features
+
+- **Typing Speed Game**: Practice typing with 10 progressively challenging levels
+- **Performance Tracking**: Measure your typing speed (WPM) and accuracy
+- **TextExpander Integration**: Unlock abbreviations as you progress through levels
+- **Abbreviation Usage**: Use unlocked abbreviations to type faster in subsequent levels
+- **Persistent Storage**: Your progress, high scores, and unlocked abbreviations are saved
+- **Leaderboard**: Compare your performance with other players
+- **User Profiles**: Track your stats and view your unlocked abbreviations
+
+## Technologies Used
+
+- React 18
+- TypeScript
+- React Router
+- Styled Components
+- Vite
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or higher)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/textexpander-typing-game.git
+   cd textexpander-typing-game
+   ```
+
+2. Install dependencies:
+   ```
+   npm install
+   ```
+   or
+   ```
+   yarn
+   ```
+
+3. Start the development server:
+   ```
+   npm run dev
+   ```
+   or
+   ```
+   yarn dev
+   ```
+
+4. Open your browser and navigate to:
+   ```
+   http://localhost:5173
+   ```
+
+## How to Play
+
+1. **Login**: Enter a username to start playing
+2. **Select a Level**: Choose from available levels on the home screen
+3. **Play the Game**: Type the displayed text as quickly and accurately as possible
+4. **Unlock Abbreviations**: Complete levels to unlock TextExpander abbreviations
+5. **Use Abbreviations**: In subsequent levels, use your unlocked abbreviations to type faster
+   - Type the abbreviation (e.g., `;em`) and it will automatically expand
+   - Or click on an abbreviation from the list to insert it at the cursor position
+6. **Track Progress**: View your stats and unlocked abbreviations in your profile
+7. **Compare Scores**: Check the leaderboard to see how you rank against other players
+
+## Game Levels
+
+The game features 10 levels of increasing difficulty:
+
+1. **Beginner**: Simple words and short sentences
+2. **Basic Sentences**: Complete sentences with common words
+3. **Intermediate**: More complex sentences with varied punctuation
+4. **Numbers & Symbols**: Practice typing numbers and special characters
+5. **Business Writing**: Professional business communications
+6. **Technical Terms**: Technical vocabulary and terms
+7. **Code Snippets**: Programming code and syntax
+8. **Advanced Paragraphs**: Long paragraphs with complex vocabulary
+9. **Creative Writing**: Expressive text with varied punctuation and dialogue
+10. **Master Level**: The ultimate typing challenge
+
+Each level has a required WPM (words per minute) target that you need to achieve to unlock the next level.
+
+## TextExpander Abbreviations
+
+As you complete levels, you'll unlock TextExpander abbreviations that can be used to type faster:
+
+- Level 1: `;em` → Email address
+- Level 2: `;addr` → Full address
+- Level 3: `;sig` → Email signature
+- Level 4: `;date` → Current date
+- Level 5: `;time` → Current time
+- Level 6: `;lorem` → Lorem ipsum text
+- Level 7: `;ty` → Thank you message
+- Level 8: `;meet` → Meeting request
+- Level 9: `;conf` → Confirmation message
+- Level 10: `;te` → TextExpander slogan
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
