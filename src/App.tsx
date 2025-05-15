@@ -16,6 +16,11 @@ import Footer from './components/Footer'
 // Types
 import { User } from './types'
 
+// Define a type for the users object
+interface UsersData {
+  [username: string]: User;
+}
+
 const AppContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -36,33 +41,102 @@ function App() {
 
   // Check if user is logged in from localStorage
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
+    try {
+      const currentUser = localStorage.getItem('currentUser')
+      if (currentUser) {
+        const usersData = localStorage.getItem('users')
+        if (usersData) {
+          const users: UsersData = JSON.parse(usersData)
+          if (users[currentUser]) {
+            setUser(users[currentUser])
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error)
+      // If there's an error, we'll just start with no user logged in
     }
   }, [])
 
   // Save user to localStorage when it changes
   useEffect(() => {
     if (user) {
-      localStorage.setItem('user', JSON.stringify(user))
+      try {
+        // Get existing users data or initialize empty object
+        let users: UsersData = {}
+        try {
+          const usersData = localStorage.getItem('users')
+          if (usersData) {
+            users = JSON.parse(usersData)
+          }
+        } catch (error) {
+          console.error('Error parsing users data, starting fresh:', error)
+          // If there's an error parsing, we'll start with an empty users object
+        }
+
+        // Update the user data
+        users[user.username] = user
+
+        // Save back to localStorage
+        localStorage.setItem('users', JSON.stringify(users))
+        localStorage.setItem('currentUser', user.username)
+      } catch (error) {
+        console.error('Error saving user data:', error)
+        // If localStorage is not available, we'll still have the user in memory
+      }
     }
   }, [user])
 
   const handleLogin = (username: string) => {
-    // In a real app, we would validate the user here
-    const newUser: User = {
-      username,
-      level: 1,
-      highScores: [],
-      unlockedAbbreviations: [],
-      lastUnlockedAbbreviation: null
+    try {
+      // Check if we have existing data for this username
+      let users: UsersData = {}
+      try {
+        const usersData = localStorage.getItem('users')
+        if (usersData) {
+          users = JSON.parse(usersData)
+        }
+      } catch (error) {
+        console.error('Error parsing users data, starting fresh:', error)
+        // If there's an error parsing, we'll start with an empty users object
+      }
+
+      if (users[username]) {
+        // User exists, use their data
+        setUser(users[username])
+      } else {
+        // Create a new user
+        const newUser: User = {
+          username,
+          level: 1,
+          highScores: [],
+          unlockedAbbreviations: [],
+          lastUnlockedAbbreviation: null
+        }
+        setUser(newUser)
+      }
+    } catch (error) {
+      console.error('Error during login:', error)
+      // If localStorage is not available, we'll create a new user in memory
+      const newUser: User = {
+        username,
+        level: 1,
+        highScores: [],
+        unlockedAbbreviations: [],
+        lastUnlockedAbbreviation: null
+      }
+      setUser(newUser)
     }
-    setUser(newUser)
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('user')
+    try {
+      // Just remove the current user reference, but keep the users data
+      localStorage.removeItem('currentUser')
+    } catch (error) {
+      console.error('Error during logout:', error)
+      // Even if we can't remove from localStorage, we can still clear the user in memory
+    }
     setUser(null)
   }
 

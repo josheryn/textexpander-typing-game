@@ -279,6 +279,12 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     }
   }, [levelId, lastUnlockedAbbreviation]);
 
+  // Debug log to track level changes
+  useEffect(() => {
+    console.log('Current levelId:', levelId);
+    console.log('Current level:', level);
+  }, [levelId, level]);
+
   const [gameState, setGameState] = useState<'ready' | 'playing' | 'finished'>('ready');
   const [startTime, setStartTime] = useState<number | null>(null);
   const [endTime, setEndTime] = useState<number | null>(null);
@@ -292,9 +298,11 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Initialize the game
+  // Initialize the game when levelId changes
   useEffect(() => {
-    if (!level) {
+    const currentLevel = getLevelById(Number(levelId));
+
+    if (!currentLevel) {
       // If level doesn't exist, redirect to home
       navigate('/');
       return;
@@ -312,18 +320,20 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     setAccuracy(100);
     setUnlockedAbbreviation(null);
     setAbbreviationsUsed(0);
-  }, [level, navigate]);
+  }, [levelId, user.level, navigate]);
 
   // Update available abbreviations when user level changes
   useEffect(() => {
-    if (level) {
-      const abbrs = getAbbreviationsForLevel(user.level);
-      setAvailableAbbreviations(abbrs);
-    }
-  }, [user.level, level]);
+    // Always update abbreviations regardless of level state
+    const abbrs = getAbbreviationsForLevel(user.level);
+    setAvailableAbbreviations(abbrs);
+  }, [user.level]);
 
   // Add keyboard event listener to start game on key press when in 'ready' state
   useEffect(() => {
+    // Get the current level based on levelId to ensure we're using the latest level data
+    const currentLevel = getLevelById(Number(levelId));
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (gameState === 'ready' && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
         // Start the game first
@@ -340,7 +350,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
           }
 
           // Count errors for the first character
-          const targetText = level?.text || '';
+          const targetText = currentLevel?.text || '';
           let errorCount = 0;
           if (e.key !== targetText[0]) {
             errorCount = 1;
@@ -354,7 +364,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [gameState, level]);
+  }, [gameState, levelId]);
 
   // Start the game
   const startGame = () => {
@@ -415,7 +425,9 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
     // Count errors
     let errorCount = 0;
-    const targetText = level?.text || '';
+    // Make sure we're using the current level text based on the levelId
+    const currentLevel = getLevelById(Number(levelId));
+    const targetText = currentLevel?.text || '';
 
     for (let i = 0; i < currentInput.length; i++) {
       if (i >= targetText.length || currentInput[i] !== targetText[i]) {
@@ -433,7 +445,9 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
   // Finish the game
   const finishGame = () => {
-    if (gameState !== 'playing' || !level) return;
+    // Make sure we're using the current level based on the levelId
+    const currentLevel = getLevelById(Number(levelId));
+    if (gameState !== 'playing' || !currentLevel) return;
 
     const endTimeStamp = Date.now();
     setEndTime(endTimeStamp);
@@ -441,7 +455,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
     // Calculate results
     const timeInMinutes = (endTimeStamp - (startTime || 0)) / 60000;
-    const targetText = level.text;
+    const targetText = currentLevel.text;
     const charactersTyped = typedText.length;
     const wordsTyped = charactersTyped / 5; // Standard: 5 characters = 1 word
     const calculatedWpm = Math.round(wordsTyped / timeInMinutes);
@@ -473,7 +487,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     };
 
     // Check if the user passed the level
-    const passed = calculatedWpm >= level.requiredWPM;
+    const passed = calculatedWpm >= currentLevel.requiredWPM;
 
     if (passed) {
       // Level up the user
@@ -481,7 +495,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
       updatedUser.level = newLevel;
 
       // Check if there's an abbreviation to unlock
-      const abbrevToUnlock = level.unlockableAbbreviation;
+      const abbrevToUnlock = currentLevel.unlockableAbbreviation;
 
       if (abbrevToUnlock && !user.unlockedAbbreviations.some(a => a.id === abbrevToUnlock.id)) {
         setUnlockedAbbreviation(abbrevToUnlock);
@@ -536,8 +550,8 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
   // Navigate to the next level
   const goToNextLevel = () => {
-    if (!level) return;
-    const nextLevelId = level.id + 1;
+    // Use the levelId parameter to determine the next level
+    const nextLevelId = Number(levelId) + 1;
     navigate(`/game/${nextLevelId}`);
   };
 
@@ -566,9 +580,11 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
   // Render the text with highlighting for typed characters
   const renderText = useCallback(() => {
-    if (!level) return null;
+    // Get the current level based on levelId to ensure we're using the latest level data
+    const currentLevel = getLevelById(Number(levelId));
+    if (!currentLevel) return null;
 
-    const targetText = level.text;
+    const targetText = currentLevel.text;
 
     return (
       <TextToType>
@@ -583,16 +599,19 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
         </RemainingText>
       </TextToType>
     );
-  }, [level, typedText]);
+  }, [levelId, typedText]);
 
-  if (!level) {
+  // Get the current level based on levelId to ensure we're using the latest level data
+  const currentLevelForRendering = getLevelById(Number(levelId));
+
+  if (!currentLevelForRendering) {
     return <div>Level not found</div>;
   }
 
   return (
     <GameContainer>
       <GameHeader>
-        <LevelTitle>Level {level.id}: {level.name}</LevelTitle>
+        <LevelTitle>Level {currentLevelForRendering.id}: {currentLevelForRendering.name}</LevelTitle>
         <GameStats>
           {gameState === 'playing' && (
             <>
@@ -611,10 +630,10 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
       {gameState === 'ready' && (
         <GameCard>
-          <h2>Ready to start Level {level.id}?</h2>
-          <p>Required WPM: {level.requiredWPM}</p>
+          <h2>Ready to start Level {currentLevelForRendering.id}?</h2>
+          <p>Required WPM: {currentLevelForRendering.requiredWPM}</p>
           <p>You'll be typing the following text:</p>
-          <TextDisplay>{level.text}</TextDisplay>
+          <TextDisplay>{currentLevelForRendering.text}</TextDisplay>
           <PrimaryButton onClick={startGame}>Start Typing</PrimaryButton>
         </GameCard>
       )}
@@ -656,15 +675,15 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
       {gameState === 'finished' && (
         <ResultsCard>
           <ResultTitle>
-            {wpm >= level.requiredWPM 
+            {wpm >= currentLevelForRendering.requiredWPM 
               ? 'Great job! Level completed!' 
               : 'Almost there! Keep practicing.'}
           </ResultTitle>
 
           <p>
-            {wpm >= level.requiredWPM 
-              ? `You've successfully completed Level ${level.id}!` 
-              : `You need ${level.requiredWPM} WPM to pass this level. Try again!`}
+            {wpm >= currentLevelForRendering.requiredWPM 
+              ? `You've successfully completed Level ${currentLevelForRendering.id}!` 
+              : `You need ${currentLevelForRendering.requiredWPM} WPM to pass this level. Try again!`}
           </p>
 
           <ResultStats>
@@ -695,7 +714,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
           <ResultButtons>
             <PrimaryButton onClick={restartGame}>Try Again</PrimaryButton>
-            {wpm >= level.requiredWPM && level.id < 10 && (
+            {wpm >= currentLevelForRendering.requiredWPM && currentLevelForRendering.id < 10 && (
               <PrimaryButton onClick={goToNextLevel}>Next Level</PrimaryButton>
             )}
             <SecondaryButton onClick={() => navigate('/')}>Back to Home</SecondaryButton>
