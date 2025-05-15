@@ -327,9 +327,6 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
   // Add keyboard event listener to start game on key press when in 'ready' state
   useEffect(() => {
-    // Get the current level based on levelId to ensure we're using the latest level data
-    const currentLevel = getLevelById(Number(levelId));
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (gameState === 'ready' && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
         // Start the game first
@@ -346,7 +343,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
           }
 
           // Count errors for the first character
-          const targetText = currentLevel?.text || '';
+          const targetText = level?.text || '';
           let errorCount = 0;
           if (e.key !== targetText[0]) {
             errorCount = 1;
@@ -360,7 +357,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [gameState, levelId]);
+  }, [gameState, level]);
 
   // Start the game
   const startGame = () => {
@@ -421,9 +418,8 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
     // Count errors
     let errorCount = 0;
-    // Make sure we're using the current level text based on the levelId
-    const currentLevel = getLevelById(Number(levelId));
-    const targetText = currentLevel?.text || '';
+    // Use the level state that has been modified by getLevelWithUnlockedAbbreviation
+    const targetText = level?.text || '';
 
     for (let i = 0; i < currentInput.length; i++) {
       if (i >= targetText.length || currentInput[i] !== targetText[i]) {
@@ -441,9 +437,8 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
   // Finish the game
   const finishGame = () => {
-    // Make sure we're using the current level based on the levelId
-    const currentLevel = getLevelById(Number(levelId));
-    if (gameState !== 'playing' || !currentLevel) return;
+    // Use the level state that has been modified by getLevelWithUnlockedAbbreviation
+    if (gameState !== 'playing' || !level) return;
 
     const endTimeStamp = Date.now();
     setEndTime(endTimeStamp);
@@ -451,7 +446,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
     // Calculate results
     const timeInMinutes = (endTimeStamp - (startTime || 0)) / 60000;
-    const targetText = currentLevel.text;
+    const targetText = level.text;
     const charactersTyped = typedText.length;
     const wordsTyped = charactersTyped / 5; // Standard: 5 characters = 1 word
     const calculatedWpm = Math.round(wordsTyped / timeInMinutes);
@@ -483,7 +478,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     };
 
     // Check if the user passed the level
-    const passed = calculatedWpm >= currentLevel.requiredWPM;
+    const passed = calculatedWpm >= level.requiredWPM;
 
     if (passed) {
       // Level up the user
@@ -491,7 +486,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
       updatedUser.level = newLevel;
 
       // Check if there's an abbreviation to unlock
-      const abbrevToUnlock = currentLevel.unlockableAbbreviation;
+      const abbrevToUnlock = level.unlockableAbbreviation;
 
       if (abbrevToUnlock && !user.unlockedAbbreviations.some(a => a.id === abbrevToUnlock.id)) {
         setUnlockedAbbreviation(abbrevToUnlock);
@@ -576,11 +571,10 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
   // Render the text with highlighting for typed characters
   const renderText = useCallback(() => {
-    // Get the current level based on levelId to ensure we're using the latest level data
-    const currentLevel = getLevelById(Number(levelId));
-    if (!currentLevel) return null;
+    // Use the level state that has been modified by getLevelWithUnlockedAbbreviation
+    if (!level) return null;
 
-    const targetText = currentLevel.text;
+    const targetText = level.text;
 
     return (
       <TextToType>
@@ -595,19 +589,17 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
         </RemainingText>
       </TextToType>
     );
-  }, [levelId, typedText]);
+  }, [level, typedText]);
 
-  // Get the current level based on levelId to ensure we're using the latest level data
-  const currentLevelForRendering = getLevelById(Number(levelId));
-
-  if (!currentLevelForRendering) {
+  // Use the level state that has been modified by getLevelWithUnlockedAbbreviation
+  if (!level) {
     return <div>Level not found</div>;
   }
 
   return (
     <GameContainer>
       <GameHeader>
-        <LevelTitle>Level {currentLevelForRendering.id}: {currentLevelForRendering.name}</LevelTitle>
+        <LevelTitle>Level {level.id}: {level.name}</LevelTitle>
         <GameStats>
           {gameState === 'playing' && (
             <>
@@ -626,10 +618,10 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
       {gameState === 'ready' && (
         <GameCard>
-          <h2>Ready to start Level {currentLevelForRendering.id}?</h2>
-          <p>Required WPM: {currentLevelForRendering.requiredWPM}</p>
+          <h2>Ready to start Level {level.id}?</h2>
+          <p>Required WPM: {level.requiredWPM}</p>
           <p>You'll be typing the following text:</p>
-          <TextDisplay>{currentLevelForRendering.text}</TextDisplay>
+          <TextDisplay>{level.text}</TextDisplay>
           <PrimaryButton onClick={startGame}>Start Typing</PrimaryButton>
         </GameCard>
       )}
@@ -671,15 +663,15 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
       {gameState === 'finished' && (
         <ResultsCard>
           <ResultTitle>
-            {wpm >= currentLevelForRendering.requiredWPM 
+            {wpm >= level.requiredWPM 
               ? 'Great job! Level completed!' 
               : 'Almost there! Keep practicing.'}
           </ResultTitle>
 
           <p>
-            {wpm >= currentLevelForRendering.requiredWPM 
-              ? `You've successfully completed Level ${currentLevelForRendering.id}!` 
-              : `You need ${currentLevelForRendering.requiredWPM} WPM to pass this level. Try again!`}
+            {wpm >= level.requiredWPM 
+              ? `You've successfully completed Level ${level.id}!` 
+              : `You need ${level.requiredWPM} WPM to pass this level. Try again!`}
           </p>
 
           <ResultStats>
@@ -710,7 +702,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
           <ResultButtons>
             <PrimaryButton onClick={restartGame}>Try Again</PrimaryButton>
-            {wpm >= currentLevelForRendering.requiredWPM && currentLevelForRendering.id < 10 && (
+            {wpm >= level.requiredWPM && level.id < 10 && (
               <PrimaryButton onClick={goToNextLevel}>Next Level</PrimaryButton>
             )}
             <SecondaryButton onClick={() => navigate('/')}>Back to Home</SecondaryButton>

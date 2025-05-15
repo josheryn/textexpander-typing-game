@@ -179,8 +179,15 @@ export const getLevelWithUnlockedAbbreviation = (level: GameLevel, unlockedAbbre
     return level;
   }
 
-  // Create a modified version of the level text that includes a reference to the abbreviation
-  const modifiedText = `${level.text} Try using the ${unlockedAbbreviation.abbreviation} abbreviation to type "${unlockedAbbreviation.expansion}" more quickly.`;
+  // Only include the abbreviation if it was unlocked in the previous level
+  // For example, if current level is 3, only include abbreviation unlocked in level 2
+  if (unlockedAbbreviation.unlockedAt !== level.id - 1) {
+    return level;
+  }
+
+  // Create a modified version of the level text that includes the actual expansion text
+  // so users can practice typing it and use the abbreviation to speed up their typing
+  const modifiedText = `${level.text} You need to type ${unlockedAbbreviation.expansion} in this text. Try using the ${unlockedAbbreviation.abbreviation} abbreviation to type it more quickly.`;
 
   return {
     ...level,
