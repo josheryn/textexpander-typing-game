@@ -25,10 +25,19 @@ const Logo = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--primary-color);
-  
+  display: flex;
+  align-items: center;
+
   a {
     color: inherit;
     text-decoration: none;
+    display: flex;
+    align-items: center;
+  }
+
+  img {
+    height: 40px;
+    margin-right: 10px;
   }
 `;
 
@@ -41,7 +50,7 @@ const Nav = styled.nav`
 const NavLink = styled(Link)`
   color: var(--text-color);
   font-weight: 500;
-  
+
   &:hover {
     color: var(--primary-color);
     text-decoration: none;
@@ -62,7 +71,7 @@ const LogoutButton = styled.button`
   background: none;
   color: var(--text-color);
   padding: 0.25rem 0.5rem;
-  
+
   &:hover {
     background-color: #f0f0f0;
     color: var(--error-color);
@@ -74,7 +83,10 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
     <HeaderContainer>
       <HeaderContent>
         <Logo>
-          <Link to="/">TextExpander Typing Game</Link>
+          <Link to="/">
+            <img src="/images/textexpander-logo.png" alt="TextExpander Logo" />
+            <span>TextExpander Typing Game</span>
+          </Link>
         </Logo>
         <Nav>
           {user ? (

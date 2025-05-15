@@ -263,6 +263,13 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
   const navigate = useNavigate();
 
   const [level, setLevel] = useState(getLevelById(Number(levelId)));
+
+  // Update level when levelId changes
+  useEffect(() => {
+    const newLevel = getLevelById(Number(levelId));
+    setLevel(newLevel);
+  }, [levelId]);
+
   const [gameState, setGameState] = useState<'ready' | 'playing' | 'finished'>('ready');
   const [startTime, setStartTime] = useState<number | null>(null);
   const [endTime, setEndTime] = useState<number | null>(null);
@@ -492,6 +499,13 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     setAbbreviationsUsed(0);
   };
 
+  // Navigate to the next level
+  const goToNextLevel = () => {
+    if (!level) return;
+    const nextLevelId = level.id + 1;
+    navigate(`/game/${nextLevelId}`);
+  };
+
   // Insert abbreviation into the text
   const insertAbbreviation = (abbr: Abbreviation) => {
     if (gameState !== 'playing' || !inputRef.current) return;
@@ -646,6 +660,9 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
           <ResultButtons>
             <PrimaryButton onClick={restartGame}>Try Again</PrimaryButton>
+            {wpm >= level.requiredWPM && level.id < 10 && (
+              <PrimaryButton onClick={goToNextLevel}>Next Level</PrimaryButton>
+            )}
             <SecondaryButton onClick={() => navigate('/')}>Back to Home</SecondaryButton>
           </ResultButtons>
         </ResultsCard>
