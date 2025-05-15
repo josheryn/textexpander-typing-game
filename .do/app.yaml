@@ -7,6 +7,9 @@ static_sites:
   build_command: npm run build
   output_dir: dist
   environment_slug: node-js
+  env:
+    - key: NODE_VERSION
+      value: 16
   routes:
     - path: /
   catchall_document: index.html
