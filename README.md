@@ -128,7 +128,7 @@ This project includes configuration for deploying to DigitalOcean App Platform:
 The deployment configuration is defined in the `.do/app.yaml` file, which specifies:
 - Build command: `npm run build`
 - Output directory: `dist`
-- Environment: Node.js (version 16)
+- Environment: Node.js (version 18)
 - Routing configuration for SPA behavior
 
 ### Troubleshooting Deployment Issues

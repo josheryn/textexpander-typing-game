@@ -12,4 +12,4 @@ static_sites:
       value: 18
   routes:
     - path: /
-    catchall_document: index.html
+      catchall_document: index.html
