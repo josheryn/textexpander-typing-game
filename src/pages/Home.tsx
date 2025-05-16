@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { User, GameLevel, Abbreviation } from '../types';
-import { gameLevels, abbreviations } from '../data/gameData';
+import { User } from '../types';
+import { gameLevels } from '../data/gameData';
 
 interface HomeProps {
   user: User;
@@ -30,7 +30,7 @@ const StatsContainer = styled.div`
   display: flex;
   gap: 2rem;
   margin-top: 1.5rem;
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 1rem;
@@ -86,7 +86,7 @@ const LevelCard = styled.div<{ isUnlocked: boolean }>`
   opacity: ${props => props.isUnlocked ? 1 : 0.7};
   position: relative;
   overflow: hidden;
-  
+
   ${props => !props.isUnlocked && `
     &::after {
       content: 'Locked';
@@ -133,7 +133,7 @@ const PlayButton = styled(Link)<{ isUnlocked: boolean }>`
   transition: background-color 0.2s;
   text-align: center;
   pointer-events: ${props => props.isUnlocked ? 'auto' : 'none'};
-  
+
   &:hover {
     background-color: ${props => props.isUnlocked ? '#3a76d8' : 'var(--border-color)'};
     text-decoration: none;
@@ -191,28 +191,28 @@ const NoAbbreviations = styled.p`
 const Home: React.FC<HomeProps> = ({ user }) => {
   const [highestWPM, setHighestWPM] = useState(0);
   const [averageAccuracy, setAverageAccuracy] = useState(0);
-  
+
   useEffect(() => {
     // Calculate highest WPM from user's high scores
     if (user.highScores.length > 0) {
       const maxWPM = Math.max(...user.highScores.map(score => score.wpm));
       setHighestWPM(maxWPM);
-      
+
       // Calculate average accuracy
       const totalAccuracy = user.highScores.reduce((sum, score) => sum + score.accuracy, 0);
       setAverageAccuracy(Math.round(totalAccuracy / user.highScores.length));
     }
   }, [user.highScores]);
-  
+
   // Filter unlocked abbreviations
   const unlockedAbbreviations = user.unlockedAbbreviations;
-  
+
   return (
     <HomeContainer>
       <WelcomeSection>
         <Title>Welcome back, {user.username}!</Title>
         <p>Continue your typing journey and unlock more abbreviations as you progress.</p>
-        
+
         <StatsContainer>
           <StatCard>
             <StatValue>{user.level}</StatValue>
@@ -232,13 +232,13 @@ const Home: React.FC<HomeProps> = ({ user }) => {
           </StatCard>
         </StatsContainer>
       </WelcomeSection>
-      
+
       <LevelsSection>
         <SectionTitle>Game Levels</SectionTitle>
         <LevelsGrid>
           {gameLevels.map((level) => {
             const isUnlocked = user.level >= level.id;
-            
+
             return (
               <LevelCard key={level.id} isUnlocked={isUnlocked}>
                 <LevelTitle>Level {level.id}: {level.name}</LevelTitle>
@@ -255,7 +255,7 @@ const Home: React.FC<HomeProps> = ({ user }) => {
           })}
         </LevelsGrid>
       </LevelsSection>
-      
+
       <AbbreviationsSection>
         <SectionTitle>Your Unlocked Abbreviations</SectionTitle>
         {unlockedAbbreviations.length > 0 ? (

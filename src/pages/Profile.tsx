@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import styled from 'styled-components';
 import { User, GameScore } from '../types';
 
@@ -30,7 +30,7 @@ const UserInfo = styled.div`
   align-items: center;
   gap: 1.5rem;
   margin-bottom: 2rem;
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: flex-start;
@@ -106,7 +106,7 @@ const ScoresTable = styled.table`
 
 const TableHeader = styled.thead`
   background-color: #f5f5f5;
-  
+
   th {
     padding: 1rem;
     text-align: left;
@@ -120,11 +120,11 @@ const TableBody = styled.tbody`
   tr:nth-child(even) {
     background-color: #f9f9f9;
   }
-  
+
   tr:hover {
     background-color: rgba(74, 134, 232, 0.05);
   }
-  
+
   td {
     padding: 1rem;
     border-bottom: 1px solid var(--border-color);
@@ -175,22 +175,22 @@ const NoAbbreviations = styled.p`
   font-style: italic;
 `;
 
-const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
-  const [highestWPM, setHighestWPM] = useState(() => {
+const Profile: React.FC<ProfileProps> = ({ user }) => {
+  const highestWPM = useMemo(() => {
     if (user.highScores.length > 0) {
       return Math.max(...user.highScores.map(score => score.wpm));
     }
     return 0;
-  });
-  
-  const [averageAccuracy, setAverageAccuracy] = useState(() => {
+  }, [user.highScores]);
+
+  const averageAccuracy = useMemo(() => {
     if (user.highScores.length > 0) {
       const totalAccuracy = user.highScores.reduce((sum, score) => sum + score.accuracy, 0);
       return Math.round(totalAccuracy / user.highScores.length);
     }
     return 0;
-  });
-  
+  }, [user.highScores]);
+
   // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -200,17 +200,17 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
       day: 'numeric' 
     });
   };
-  
+
   // Get user's initial for avatar
   const userInitial = user.username.charAt(0).toUpperCase();
-  
+
   // Sort high scores by WPM (highest first)
   const sortedScores = [...user.highScores].sort((a, b) => b.wpm - a.wpm);
-  
+
   return (
     <ProfileContainer>
       <Title>Your Profile</Title>
-      
+
       <ProfileCard>
         <UserInfo>
           <UserAvatar>{userInitial}</UserAvatar>
@@ -219,7 +219,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
             <UserLevel>Level {user.level}</UserLevel>
           </UserDetails>
         </UserInfo>
-        
+
         <StatsContainer>
           <StatCard>
             <StatValue>{highestWPM}</StatValue>
@@ -238,7 +238,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
             <StatLabel>Abbreviations Unlocked</StatLabel>
           </StatCard>
         </StatsContainer>
-        
+
         <SectionTitle>Your High Scores</SectionTitle>
         {sortedScores.length > 0 ? (
           <ScoresTable>
@@ -266,7 +266,7 @@ const Profile: React.FC<ProfileProps> = ({ user, setUser }) => {
         ) : (
           <p>You haven't completed any games yet. Start playing to record your scores!</p>
         )}
-        
+
         <SectionTitle>Your Unlocked Abbreviations</SectionTitle>
         {user.unlockedAbbreviations.length > 0 ? (
           <AbbreviationsList>

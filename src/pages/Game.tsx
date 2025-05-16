@@ -287,7 +287,6 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
   const [gameState, setGameState] = useState<'ready' | 'playing' | 'finished'>('ready');
   const [startTime, setStartTime] = useState<number | null>(null);
-  const [endTime, setEndTime] = useState<number | null>(null);
   const [typedText, setTypedText] = useState('');
   const [errors, setErrors] = useState(0);
   const [wpm, setWpm] = useState(0);
@@ -363,7 +362,6 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
   const startGame = () => {
     setGameState('playing');
     setStartTime(Date.now());
-    setEndTime(null);
     setTypedText('');
     setErrors(0);
 
@@ -441,12 +439,10 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     if (gameState !== 'playing' || !level) return;
 
     const endTimeStamp = Date.now();
-    setEndTime(endTimeStamp);
     setGameState('finished');
 
     // Calculate results
     const timeInMinutes = (endTimeStamp - (startTime || 0)) / 60000;
-    const targetText = level.text;
     const charactersTyped = typedText.length;
     const wordsTyped = charactersTyped / 5; // Standard: 5 characters = 1 word
     const calculatedWpm = Math.round(wordsTyped / timeInMinutes);
