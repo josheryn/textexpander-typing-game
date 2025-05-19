@@ -4,6 +4,7 @@ import { User, GameScore } from '../types';
 
 interface ProfileProps {
   user: User;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const ProfileContainer = styled.div`
