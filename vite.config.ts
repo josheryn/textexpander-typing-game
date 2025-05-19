@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     port: parseInt(process.env.PORT || '8080'),
     host: true,
-    open: true
+    open: process.env.NODE_ENV !== 'production'
   },
   base: './' // Add base path configuration for deployment
 })
