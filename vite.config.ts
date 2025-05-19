@@ -10,7 +10,7 @@ export default defineConfig({
     open: process.env.NODE_ENV !== 'production'
   },
   preview: {
-    allowedHosts: 'all'
+    allowedHosts: ['textexpander-typing-game-pcac7.ondigitalocean.app', 'all']
   },
   base: './' // Add base path configuration for deployment
 })
