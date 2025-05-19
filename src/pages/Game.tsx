@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { User, GameScore, Abbreviation } from '../types';
+import { User, GameScore, Abbreviation, GameLevel } from '../types';
 import { getLevelById, getAbbreviationsForLevel, getLevelWithUnlockedAbbreviation } from '../data/gameData';
 
 interface GameProps {
@@ -262,7 +262,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
   const { level: levelId } = useParams<{ level: string }>();
   const navigate = useNavigate();
 
-  const [level, setLevel] = useState(getLevelById(Number(levelId)));
+  const [level, setLevel] = useState<GameLevel | undefined>(getLevelById(Number(levelId)));
   const [lastUnlockedAbbreviation, setLastUnlockedAbbreviation] = useState<Abbreviation | null>(user.lastUnlockedAbbreviation || null);
 
   // Update level when levelId changes
@@ -474,7 +474,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     };
 
     // Check if the user passed the level
-    const passed = calculatedWpm >= level.requiredWPM;
+    const passed = level ? calculatedWpm >= level.requiredWPM : false;
 
     if (passed) {
       // Level up the user
@@ -482,7 +482,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
       updatedUser.level = newLevel;
 
       // Check if there's an abbreviation to unlock
-      const abbrevToUnlock = level.unlockableAbbreviation;
+      const abbrevToUnlock = level ? level.unlockableAbbreviation : undefined;
 
       if (abbrevToUnlock && !user.unlockedAbbreviations.some(a => a.id === abbrevToUnlock.id)) {
         setUnlockedAbbreviation(abbrevToUnlock);

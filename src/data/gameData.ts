@@ -82,7 +82,7 @@ export const gameLevels: GameLevel[] = [
     description: 'Start your typing journey with simple words and short sentences.',
     text: 'The quick brown fox jumps over the lazy dog. Simple words help you learn to type faster. Practice makes perfect when learning to type.',
     requiredWPM: 20,
-    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 1)
+    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 1) || undefined
   },
   {
     id: 2,
@@ -90,7 +90,7 @@ export const gameLevels: GameLevel[] = [
     description: 'Practice typing complete sentences with common words.',
     text: 'Learning to type quickly is an essential skill in today\'s digital world. Regular practice will help you improve your speed and accuracy. Try to maintain a steady rhythm as you type.',
     requiredWPM: 30,
-    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 2)
+    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 2) || undefined
   },
   {
     id: 3,
@@ -98,7 +98,7 @@ export const gameLevels: GameLevel[] = [
     description: 'More complex sentences with varied punctuation.',
     text: 'TextExpander allows you to create "snippets" of text that expand into frequently-used phrases, paragraphs, or even images! This saves you time and ensures consistency in your communications. Have you tried using it yet?',
     requiredWPM: 40,
-    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 3)
+    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 3) || undefined
   },
   {
     id: 4,
@@ -106,7 +106,7 @@ export const gameLevels: GameLevel[] = [
     description: 'Practice typing numbers, symbols, and special characters.',
     text: 'Your password should include at least 8 characters with 1 uppercase letter, 1 number, and 1 special symbol (like #, @, or !). For example, "Secure123!" would be a decent password for non-critical accounts.',
     requiredWPM: 45,
-    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 4)
+    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 4) || undefined
   },
   {
     id: 5,
@@ -114,7 +114,7 @@ export const gameLevels: GameLevel[] = [
     description: 'Practice typing professional business communications.',
     text: 'Dear Mr. Johnson, Thank you for your inquiry dated May 15, 2023. We are pleased to provide you with the requested information regarding our services. Please find attached our complete catalog and price list. Should you have any questions, please don\'t hesitate to contact us.',
     requiredWPM: 50,
-    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 5)
+    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 5) || undefined
   },
   {
     id: 6,
@@ -122,7 +122,7 @@ export const gameLevels: GameLevel[] = [
     description: 'Challenge yourself with technical vocabulary and terms.',
     text: 'The API documentation specifies that HTTP requests must include an Authorization header with a valid JWT token. The response will be in JSON format with a 200 OK status for successful requests or appropriate error codes (e.g., 401 Unauthorized, 404 Not Found) for failed requests.',
     requiredWPM: 55,
-    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 6)
+    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 6) || undefined
   },
   {
     id: 7,
@@ -130,7 +130,7 @@ export const gameLevels: GameLevel[] = [
     description: 'Practice typing programming code and syntax.',
     text: 'function calculateWPM(totalChars, timeInMinutes) {\n  const wordsTyped = totalChars / 5; // Standard: 5 chars = 1 word\n  return Math.round(wordsTyped / timeInMinutes);\n}\n\n// Call the function\nconst wpm = calculateWPM(500, 2);',
     requiredWPM: 60,
-    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 7)
+    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 7) || undefined
   },
   {
     id: 8,
@@ -138,7 +138,7 @@ export const gameLevels: GameLevel[] = [
     description: 'Long paragraphs with complex vocabulary and structure.',
     text: 'TextExpander\'s productivity features extend beyond simple text replacement. The application\'s sophisticated capabilities include fill-in fields for customizable snippets, date and time mathematics, and conditional expansions based on various criteria. Furthermore, it integrates seamlessly with numerous applications across different operating systems, enhancing workflow efficiency regardless of your preferred software environment.',
     requiredWPM: 65,
-    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 8)
+    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 8) || undefined
   },
   {
     id: 9,
@@ -146,7 +146,7 @@ export const gameLevels: GameLevel[] = [
     description: 'Expressive text with varied punctuation and dialogue.',
     text: '"Do you believe in coincidences?" she asked, glancing nervously over her shoulder. "Not in our line of work," he replied with a grim smile. "Everything happens for a reason—usually someone else\'s reason." The café buzzed with afternoon chatter, but their corner table remained an island of tension. "Well then," she whispered, sliding a worn envelope across the table, "you\'ll find this particularly... non-coincidental."',
     requiredWPM: 70,
-    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 9)
+    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 9) || undefined
   },
   {
     id: 10,
@@ -154,7 +154,7 @@ export const gameLevels: GameLevel[] = [
     description: 'The ultimate typing challenge with complex text and formatting.',
     text: 'TextExpander revolutionizes how professionals manage their communication workflow. By transforming frequently-used text into easily accessible snippets, it eliminates repetitive typing, reduces errors by 80%, and saves the average user 30+ hours annually. Organizations implementing TextExpander report significant improvements in customer response times (↓42%) and consistency of messaging (↑95%). The ROI becomes evident within just 4-6 weeks of adoption, making it an essential productivity tool for teams across industries—from customer support and sales to technical documentation and healthcare.',
     requiredWPM: 80,
-    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 10)
+    unlockableAbbreviation: abbreviations.find(a => a.unlockedAt === 10) || undefined
   }
 ];
 
