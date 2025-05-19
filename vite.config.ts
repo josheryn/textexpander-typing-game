@@ -9,5 +9,8 @@ export default defineConfig({
     host: true,
     open: process.env.NODE_ENV !== 'production'
   },
+  preview: {
+    allowedHosts: ['*.ondigitalocean.app']
+  },
   base: './' // Add base path configuration for deployment
 })
