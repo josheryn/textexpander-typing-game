@@ -174,12 +174,12 @@ export const getAbbreviationsForLevel = (level: number): Abbreviation[] => {
 };
 
 // Helper function to modify level text to include references to unlocked abbreviations
-export const getLevelWithUnlockedAbbreviation = (level: GameLevel, unlockedAbbreviation: Abbreviation | null): GameLevel => {
+export const getLevelWithUnlockedAbbreviation = (level: GameLevel, _unlockedAbbreviation: Abbreviation | null): GameLevel => {
   // For each level, incorporate the abbreviation that corresponds to that level
   // Level 1 uses ;em, Level 2 uses ;addr, etc.
 
   // Get the abbreviation for the current level based on the level ID
-  let currentLevelAbbreviation;
+  let currentLevelAbbreviation: Abbreviation | undefined;
 
   if (level.id === 1) {
     // For level 1, use the ;em abbreviation (which is unlocked at level 1)
@@ -223,12 +223,12 @@ export const getLevelWithUnlockedAbbreviation = (level: GameLevel, unlockedAbbre
       expansion: 'example text',
       description: 'Default example',
       unlockedAt: 1
-    };
+    } as Abbreviation;
   }
 
   // Create a modified version of the level text that incorporates the expansion text
   // from the current level's abbreviation into the actual text
-  let modifiedText = level.text;
+  let modifiedText: string = level.text;
 
   // For level 1, incorporate the email abbreviation in a contextually appropriate way
   if (level.id === 1) {
