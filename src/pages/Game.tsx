@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { User, GameScore, Abbreviation, LeaderboardEntry } from '../types';
+import { User, GameScore, Abbreviation, LeaderboardEntry, GameLevel } from '../types';
 import { getLevelById, getAbbreviationsForLevel, getLevelWithUnlockedAbbreviation } from '../data/gameData';
 import { addLeaderboardScore, addLeaderboardScoreToLocalStorage } from '../services/api';
 

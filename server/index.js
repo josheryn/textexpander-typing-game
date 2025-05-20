@@ -3,6 +3,7 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const dotenv = require('dotenv');
 const path = require('path');
+const fs = require('fs');
 
 // Load environment variables
 dotenv.config();
@@ -23,13 +24,53 @@ const pool = new Pool({
   }
 });
 
-// Test database connection
+// Read the schema SQL file
+const schemaPath = path.join(__dirname, 'db', 'schema.sql');
+const schema = fs.readFileSync(schemaPath, 'utf8');
+
+// Initialize database if needed
+async function initializeDatabaseIfNeeded() {
+  const client = await pool.connect();
+
+  try {
+    // Check if the database has been initialized by looking for the users table
+    const checkTableResult = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'users'
+      );
+    `);
+
+    const tableExists = checkTableResult.rows[0].exists;
+
+    if (!tableExists) {
+      console.log('Database tables not found. Initializing database...');
+
+      // Execute the schema SQL
+      await client.query(schema);
+
+      console.log('Database initialization completed successfully');
+    } else {
+      console.log('Database already initialized');
+    }
+  } catch (err) {
+    console.error('Error checking/initializing database:', err);
+  } finally {
+    client.release();
+  }
+}
+
+// Test database connection and initialize if needed
 pool.connect((err, client, release) => {
   if (err) {
     return console.error('Error acquiring client', err.stack);
   }
   console.log('Connected to PostgreSQL database');
   release();
+
+  // Initialize database after successful connection
+  initializeDatabaseIfNeeded();
 });
 
 // API Routes

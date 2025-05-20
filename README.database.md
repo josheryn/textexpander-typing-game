@@ -32,7 +32,7 @@ The application has been updated to use a PostgreSQL database for persistent dat
    ```
    cp .env.example .env
    ```
-   
+
    Update the `DATABASE_URL` with your PostgreSQL connection string:
    ```
    DATABASE_URL=postgres://username:password@localhost:5432/textexpander
@@ -43,19 +43,23 @@ The application has been updated to use a PostgreSQL database for persistent dat
    ```
    createdb textexpander
    ```
-   
-   Run the database initialization script:
+
+   You can initialize the database in one of two ways:
+
+   **Option 1**: Run the database initialization script:
    ```
    npm run db:init
    ```
-   
-   This will create the necessary tables and insert the default abbreviations.
+
+   **Option 2**: Let the server initialize the database automatically when it starts.
+
+   Both options will create the necessary tables and insert the default abbreviations. The first option is useful if you want to initialize the database before starting the server.
 
 5. **Start the development servers**:
    ```
    npm run dev:full
    ```
-   
+
    This will start both the frontend (Vite) and backend (Express) servers concurrently.
 
 6. **Access the application**:
@@ -90,13 +94,11 @@ The application is configured to be deployed on DigitalOcean App Platform with a
    - You can monitor the progress in the deployment logs
 
 5. **Database Initialization**:
-   After the app is deployed, you need to initialize the database:
-   
-   - Go to the "Console" tab in your app's dashboard
-   - Run the database initialization command:
-     ```
-     npm run db:init
-     ```
+   The database will be automatically initialized when the application starts for the first time. The server checks if the database tables exist and creates them if they don't.
+
+   You can monitor the initialization process in the application logs:
+   - Go to the "Logs" tab in your app's dashboard
+   - Look for messages like "Database tables not found. Initializing database..." and "Database initialization completed successfully"
 
 6. **Access Your Application**:
    - Once deployment is complete, click on the app URL to access your application
