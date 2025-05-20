@@ -269,9 +269,9 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
   useEffect(() => {
     const newLevel = getLevelById(Number(levelId));
 
-    // Check if we have a previously unlocked abbreviation to include in this level
-    if (newLevel && lastUnlockedAbbreviation) {
-      // Modify the level text to include a reference to the last unlocked abbreviation
+    // Always use the modified level text with expansion text incorporated
+    if (newLevel) {
+      // Modify the level text to include a reference to the abbreviation for this level
       const modifiedLevel = getLevelWithUnlockedAbbreviation(newLevel, lastUnlockedAbbreviation);
       setLevel(modifiedLevel);
     } else {
@@ -481,16 +481,29 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
       const newLevel = Math.max(user.level, Number(levelId) + 1);
       updatedUser.level = newLevel;
 
-      // Check if there's an abbreviation to unlock
-      const abbrevToUnlock = level ? level.unlockableAbbreviation : undefined;
+      // Get the next level's ID
+      const nextLevelId = Number(levelId) + 1;
 
-      if (abbrevToUnlock && !user.unlockedAbbreviations.some(a => a.id === abbrevToUnlock.id)) {
-        setUnlockedAbbreviation(abbrevToUnlock);
-        // Store this as the last unlocked abbreviation to use in the next level
-        setLastUnlockedAbbreviation(abbrevToUnlock);
-        // Add the abbreviation to user's unlocked list and store it as the last unlocked abbreviation
-        updatedUser.unlockedAbbreviations = [...user.unlockedAbbreviations, abbrevToUnlock];
-        updatedUser.lastUnlockedAbbreviation = abbrevToUnlock;
+      // Get the next level
+      const nextLevel = getLevelById(nextLevelId);
+
+      // Check if there's an abbreviation to unlock in the current level
+      const currentAbbrevToUnlock = level ? level.unlockableAbbreviation : undefined;
+
+      // Check if there's an abbreviation to unlock in the next level (to display to the user)
+      const nextAbbrevToUnlock = nextLevel ? nextLevel.unlockableAbbreviation : undefined;
+
+      if (currentAbbrevToUnlock && !user.unlockedAbbreviations.some(a => a.id === currentAbbrevToUnlock.id)) {
+        // Display the next level's abbreviation as unlocked
+        // If there's no next level (e.g., user completed level 10), don't show any abbreviation as unlocked
+        setUnlockedAbbreviation(nextAbbrevToUnlock || null);
+
+        // Store the current level's abbreviation as the last unlocked abbreviation to use in the next level
+        setLastUnlockedAbbreviation(currentAbbrevToUnlock);
+
+        // Add the current level's abbreviation to user's unlocked list and store it as the last unlocked abbreviation
+        updatedUser.unlockedAbbreviations = [...user.unlockedAbbreviations, currentAbbrevToUnlock];
+        updatedUser.lastUnlockedAbbreviation = currentAbbrevToUnlock;
       }
     }
 
@@ -618,7 +631,22 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
           <p>Required WPM: {level.requiredWPM}</p>
           <p>You'll be typing the following text:</p>
           <TextDisplay>{level.text}</TextDisplay>
-          <PrimaryButton onClick={startGame}>Start Typing</PrimaryButton>
+
+          {availableAbbreviations.length > 0 && (
+            <AbbreviationsSection>
+              <h3>Available Abbreviations</h3>
+              <p>Use these abbreviations to speed up your typing</p>
+              <AbbreviationsList>
+                {availableAbbreviations.map(abbr => (
+                  <AbbreviationCard key={abbr.id}>
+                    <strong>{abbr.abbreviation}</strong> → {abbr.expansion.length > 30 ? abbr.expansion.substring(0, 30) + '...' : abbr.expansion}
+                  </AbbreviationCard>
+                ))}
+              </AbbreviationsList>
+            </AbbreviationsSection>
+          )}
+
+          <PrimaryButton onClick={startGame} style={{ marginTop: '2rem' }}>Start Typing</PrimaryButton>
         </GameCard>
       )}
 

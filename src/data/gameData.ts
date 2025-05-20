@@ -173,21 +173,103 @@ export const getAbbreviationsForLevel = (level: number): Abbreviation[] => {
   return abbreviations.filter(abbr => abbr.unlockedAt <= level);
 };
 
-// Helper function to modify level text to include references to newly unlocked abbreviations
+// Helper function to modify level text to include references to unlocked abbreviations
 export const getLevelWithUnlockedAbbreviation = (level: GameLevel, unlockedAbbreviation: Abbreviation | null): GameLevel => {
-  if (!unlockedAbbreviation) {
-    return level;
+  // For each level, incorporate the abbreviation that corresponds to that level
+  // Level 1 uses ;em, Level 2 uses ;addr, etc.
+
+  // Get the abbreviation for the current level based on the level ID
+  let currentLevelAbbreviation;
+
+  if (level.id === 1) {
+    // For level 1, use the ;em abbreviation (which is unlocked at level 1)
+    currentLevelAbbreviation = abbreviations.find(a => a.abbreviation === ';em');
+  } else if (level.id === 2) {
+    // For level 2, use the ;addr abbreviation
+    currentLevelAbbreviation = abbreviations.find(a => a.abbreviation === ';addr');
+  } else if (level.id === 3) {
+    // For level 3, use the ;sig abbreviation
+    currentLevelAbbreviation = abbreviations.find(a => a.abbreviation === ';sig');
+  } else if (level.id === 4) {
+    // For level 4, use the ;date abbreviation
+    currentLevelAbbreviation = abbreviations.find(a => a.abbreviation === ';date');
+  } else if (level.id === 5) {
+    // For level 5, use the ;time abbreviation
+    currentLevelAbbreviation = abbreviations.find(a => a.abbreviation === ';time');
+  } else if (level.id === 6) {
+    // For level 6, use the ;lorem abbreviation
+    currentLevelAbbreviation = abbreviations.find(a => a.abbreviation === ';lorem');
+  } else if (level.id === 7) {
+    // For level 7, use the ;ty abbreviation
+    currentLevelAbbreviation = abbreviations.find(a => a.abbreviation === ';ty');
+  } else if (level.id === 8) {
+    // For level 8, use the ;meet abbreviation
+    currentLevelAbbreviation = abbreviations.find(a => a.abbreviation === ';meet');
+  } else if (level.id === 9) {
+    // For level 9, use the ;conf abbreviation
+    currentLevelAbbreviation = abbreviations.find(a => a.abbreviation === ';conf');
+  } else if (level.id === 10) {
+    // For level 10, use the ;te abbreviation
+    currentLevelAbbreviation = abbreviations.find(a => a.abbreviation === ';te');
   }
 
-  // Only include the abbreviation if it was unlocked in the previous level
-  // For example, if current level is 3, only include abbreviation unlocked in level 2
-  if (unlockedAbbreviation.unlockedAt !== level.id - 1) {
-    return level;
+  // Even if we don't find the abbreviation for this level, we still want to use the modified text
+  // This ensures we always use the modified level versions
+  if (!currentLevelAbbreviation) {
+    // Use a default abbreviation if the one for this level is not found
+    currentLevelAbbreviation = {
+      id: 'default',
+      abbreviation: ';default',
+      expansion: 'example text',
+      description: 'Default example',
+      unlockedAt: 1
+    };
   }
 
-  // Create a modified version of the level text that includes the actual expansion text
-  // so users can practice typing it and use the abbreviation to speed up their typing
-  const modifiedText = `${level.text} You need to type ${unlockedAbbreviation.expansion} in this text. Try using the ${unlockedAbbreviation.abbreviation} abbreviation to type it more quickly.`;
+  // Create a modified version of the level text that incorporates the expansion text
+  // from the current level's abbreviation into the actual text
+  let modifiedText = level.text;
+
+  // For level 1, incorporate the email abbreviation in a contextually appropriate way
+  if (level.id === 1) {
+    modifiedText = `The quick brown fox jumps over the lazy dog. Simple words help you learn to type faster. Practice makes perfect when learning to type. You can contact me at ${currentLevelAbbreviation.expansion} for more typing tips.`;
+  }
+  // For level 2, incorporate the address abbreviation in a contextually appropriate way
+  else if (level.id === 2) {
+    modifiedText = `Learning to type quickly is an essential skill in today's digital world. Regular practice will help you improve your speed and accuracy. Try to maintain a steady rhythm as you type. For correspondence, my mailing address is ${currentLevelAbbreviation.expansion}.`;
+  }
+  // For level 3, incorporate the signature abbreviation at the end of a message
+  else if (level.id === 3) {
+    modifiedText = `TextExpander allows you to create "snippets" of text that expand into frequently-used phrases, paragraphs, or even images! This saves you time and ensures consistency in your communications. Have you tried using it yet?\n\n${currentLevelAbbreviation.expansion}`;
+  }
+  // For level 4, incorporate the date abbreviation in a contextually appropriate way
+  else if (level.id === 4) {
+    modifiedText = `Your password should include at least 8 characters with 1 uppercase letter, 1 number, and 1 special symbol (like #, @, or !). For example, "Secure123!" would be a decent password for non-critical accounts. As of ${currentLevelAbbreviation.expansion}, we recommend using a password manager for better security.`;
+  }
+  // For level 5, incorporate the time abbreviation in a business context
+  else if (level.id === 5) {
+    modifiedText = `Dear Mr. Johnson, Thank you for your inquiry dated May 15, 2023. We are pleased to provide you with the requested information regarding our services. As of ${currentLevelAbbreviation.expansion}, our catalog has been updated with new offerings. Please find attached our complete catalog and price list. Should you have any questions, please don't hesitate to contact us.`;
+  }
+  // For level 6, incorporate the lorem ipsum abbreviation as sample text
+  else if (level.id === 6) {
+    modifiedText = `The API documentation specifies that HTTP requests must include an Authorization header with a valid JWT token. The response will be in JSON format with a 200 OK status for successful requests or appropriate error codes (e.g., 401 Unauthorized, 404 Not Found) for failed requests. For placeholder text in your documentation, you can use: ${currentLevelAbbreviation.expansion}`;
+  }
+  // For level 7, incorporate the thank you abbreviation as an email response
+  else if (level.id === 7) {
+    modifiedText = `function calculateWPM(totalChars, timeInMinutes) {\n  const wordsTyped = totalChars / 5; // Standard: 5 chars = 1 word\n  return Math.round(wordsTyped / timeInMinutes);\n}\n\n// Call the function\nconst wpm = calculateWPM(500, 2);\n\n// Email response template:\n${currentLevelAbbreviation.expansion}`;
+  }
+  // For level 8, incorporate the meeting abbreviation as a follow-up request
+  else if (level.id === 8) {
+    modifiedText = `TextExpander's productivity features extend beyond simple text replacement. The application's sophisticated capabilities include fill-in fields for customizable snippets, date and time mathematics, and conditional expansions based on various criteria. Furthermore, it integrates seamlessly with numerous applications across different operating systems, enhancing workflow efficiency regardless of your preferred software environment.\n\nAfter reviewing these features: ${currentLevelAbbreviation.expansion}`;
+  }
+  // For level 9, incorporate the confirmation abbreviation in the dialogue
+  else if (level.id === 9) {
+    modifiedText = `"Do you believe in coincidences?" she asked, glancing nervously over her shoulder. "Not in our line of work," he replied with a grim smile. "Everything happens for a reason—usually someone else's reason." The café buzzed with afternoon chatter, but their corner table remained an island of tension. "Well then," she whispered, sliding a worn envelope across the table, "you'll find this particularly... non-coincidental." He opened the envelope and read: "${currentLevelAbbreviation.expansion}"`;
+  }
+  // For level 10, incorporate the TextExpander slogan in a marketing context
+  else if (level.id === 10) {
+    modifiedText = `TextExpander revolutionizes how professionals manage their communication workflow. By transforming frequently-used text into easily accessible snippets, it eliminates repetitive typing, reduces errors by 80%, and saves the average user 30+ hours annually. Organizations implementing TextExpander report significant improvements in customer response times (↓42%) and consistency of messaging (↑95%). The ROI becomes evident within just 4-6 weeks of adoption, making it an essential productivity tool for teams across industries—from customer support and sales to technical documentation and healthcare. Our company motto: ${currentLevelAbbreviation.expansion}`;
+  }
 
   return {
     ...level,
