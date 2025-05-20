@@ -201,3 +201,32 @@ export const addLeaderboardScoreToLocalStorage = (entry: LeaderboardEntry): bool
     return false;
   }
 };
+
+/**
+ * Check if the application is using the database or localStorage
+ */
+export const checkStorageMethod = async (): Promise<{ usingDatabase: boolean, message: string }> => {
+  try {
+    // Try to connect to the API
+    const response = await fetch(`${API_BASE_URL}/db-status`);
+
+    if (!response.ok) {
+      return { 
+        usingDatabase: false, 
+        message: 'Using localStorage (API connection failed)' 
+      };
+    }
+
+    const data = await response.json();
+    return { 
+      usingDatabase: data.status === 'connected', 
+      message: `Using database (Connected to PostgreSQL, tables initialized: ${data.tablesInitialized})` 
+    };
+  } catch (error) {
+    console.error('Error checking storage method:', error);
+    return { 
+      usingDatabase: false, 
+      message: 'Using localStorage (API connection error)' 
+    };
+  }
+};

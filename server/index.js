@@ -253,6 +253,41 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Database status endpoint
+app.get('/api/db-status', async (req, res) => {
+  try {
+    // Test database connection
+    const client = await pool.connect();
+    const result = await client.query('SELECT NOW()');
+    client.release();
+
+    // Check if tables exist
+    const tablesResult = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'users'
+      );
+    `);
+
+    const tableExists = tablesResult.rows[0].exists;
+
+    res.json({
+      status: 'connected',
+      timestamp: result.rows[0].now,
+      tablesInitialized: tableExists,
+      databaseUrl: process.env.DATABASE_URL ? 'configured' : 'missing'
+    });
+  } catch (err) {
+    console.error('Database connection error:', err);
+    res.status(500).json({
+      status: 'error',
+      message: err.message,
+      databaseUrl: process.env.DATABASE_URL ? 'configured' : 'missing'
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

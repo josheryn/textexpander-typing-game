@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { User } from '../types';
 import { gameLevels } from '../data/gameData';
+import DatabaseStatus from '../components/DatabaseStatus';
 
 interface HomeProps {
   user: User;
@@ -231,6 +232,9 @@ const Home: React.FC<HomeProps> = ({ user }) => {
             <StatLabel>Abbreviations Unlocked</StatLabel>
           </StatCard>
         </StatsContainer>
+
+        {/* Display database connection status */}
+        <DatabaseStatus />
       </WelcomeSection>
 
       <LevelsSection>
