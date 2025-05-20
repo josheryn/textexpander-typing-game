@@ -23,9 +23,10 @@ app.use(express.json());
 // Database connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false // Required for DigitalOcean managed database
-  }
+  ssl: process.env.NODE_ENV === 'production' ? {
+    rejectUnauthorized: false, // Required for DigitalOcean managed database
+    checkServerIdentity: () => undefined // Skip server identity check
+  } : false // Disable SSL for local development
 });
 
 // Read the schema SQL file
