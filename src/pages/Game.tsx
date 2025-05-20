@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { User, GameScore, Abbreviation, GameLevel } from '../types';
+import { User, GameScore, Abbreviation, LeaderboardEntry } from '../types';
 import { getLevelById, getAbbreviationsForLevel, getLevelWithUnlockedAbbreviation } from '../data/gameData';
+import { addLeaderboardScore, addLeaderboardScoreToLocalStorage } from '../services/api';
 
 interface GameProps {
   user: User;
@@ -511,28 +512,29 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     setUser(updatedUser);
 
     // Add score to global leaderboard
-    const leaderboardEntry = {
+    const leaderboardEntry: LeaderboardEntry = {
       username: user.username,
       level: Number(levelId),
       wpm: calculatedWpm,
       accuracy: calculatedAccuracy,
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      abbreviationsUsed
     };
 
-    // Get existing leaderboard or create a new one
-    const storedLeaderboard = localStorage.getItem('leaderboard');
-    let leaderboard = storedLeaderboard ? JSON.parse(storedLeaderboard) : [];
-
-    // Add new entry and sort by WPM (highest first)
-    leaderboard = [...leaderboard, leaderboardEntry].sort((a, b) => b.wpm - a.wpm);
-
-    // Keep only top 100 scores
-    if (leaderboard.length > 100) {
-      leaderboard = leaderboard.slice(0, 100);
-    }
-
-    // Save back to localStorage
-    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+    // Try to save to API first, then fall back to localStorage if needed
+    addLeaderboardScore(leaderboardEntry)
+      .then(success => {
+        if (!success) {
+          console.warn('Failed to save score to API leaderboard, falling back to localStorage');
+          // Fall back to localStorage
+          addLeaderboardScoreToLocalStorage(leaderboardEntry);
+        }
+      })
+      .catch(error => {
+        console.error('Error saving score to API leaderboard:', error);
+        // Fall back to localStorage
+        addLeaderboardScoreToLocalStorage(leaderboardEntry);
+      });
   };
 
   // Restart the game

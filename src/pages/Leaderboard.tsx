@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { LeaderboardEntry } from '../types';
+import { getLeaderboard, getLeaderboardFromLocalStorage } from '../services/api';
 
 const LeaderboardContainer = styled.div`
   display: flex;
@@ -28,7 +29,7 @@ const LeaderboardTable = styled.table`
 
 const TableHeader = styled.thead`
   background-color: #f5f5f5;
-  
+
   th {
     padding: 1rem;
     text-align: left;
@@ -42,11 +43,11 @@ const TableBody = styled.tbody`
   tr:nth-child(even) {
     background-color: #f9f9f9;
   }
-  
+
   tr:hover {
     background-color: rgba(74, 134, 232, 0.05);
   }
-  
+
   td {
     padding: 1rem;
     border-bottom: 1px solid var(--border-color);
@@ -69,7 +70,7 @@ const FilterControls = styled.div`
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
   }
@@ -87,32 +88,73 @@ const Leaderboard: React.FC = () => {
   const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
   const [filteredEntries, setFilteredEntries] = useState<LeaderboardEntry[]>([]);
   const [levelFilter, setLevelFilter] = useState<number | 'all'>('all');
-  
+
   useEffect(() => {
-    // Load leaderboard data from localStorage
-    const storedLeaderboard = localStorage.getItem('leaderboard');
-    if (storedLeaderboard) {
-      setLeaderboardEntries(JSON.parse(storedLeaderboard));
-    } else {
-      // If no leaderboard exists yet, create an empty one
-      setLeaderboardEntries([]);
-      localStorage.setItem('leaderboard', JSON.stringify([]));
-    }
+    // Load leaderboard data from API or localStorage
+    const loadLeaderboard = async () => {
+      try {
+        // First try to get leaderboard from API
+        const apiLeaderboard = await getLeaderboard();
+
+        if (apiLeaderboard && apiLeaderboard.length > 0) {
+          setLeaderboardEntries(apiLeaderboard);
+        } else {
+          // If API fails or returns empty, try localStorage as fallback
+          const localLeaderboard = getLeaderboardFromLocalStorage();
+          setLeaderboardEntries(localLeaderboard);
+        }
+      } catch (error) {
+        console.error('Error loading leaderboard:', error);
+        // If API fails, try localStorage as fallback
+        const localLeaderboard = getLeaderboardFromLocalStorage();
+        setLeaderboardEntries(localLeaderboard);
+      }
+    };
+
+    loadLeaderboard();
   }, []);
-  
+
   useEffect(() => {
     // Apply filters
-    if (levelFilter === 'all') {
-      setFilteredEntries([...leaderboardEntries].sort((a, b) => b.wpm - a.wpm));
-    } else {
-      setFilteredEntries(
-        [...leaderboardEntries]
-          .filter(entry => entry.level === levelFilter)
-          .sort((a, b) => b.wpm - a.wpm)
-      );
-    }
+    const applyFilters = async () => {
+      try {
+        if (levelFilter !== 'all') {
+          // If filtering by level, try to get filtered data from API
+          const filteredData = await getLeaderboard(levelFilter);
+          if (filteredData && filteredData.length > 0) {
+            setFilteredEntries(filteredData);
+            return;
+          }
+        }
+
+        // If no filter or API call failed, filter the existing data
+        if (levelFilter === 'all') {
+          setFilteredEntries([...leaderboardEntries].sort((a, b) => b.wpm - a.wpm));
+        } else {
+          setFilteredEntries(
+            [...leaderboardEntries]
+              .filter(entry => entry.level === levelFilter)
+              .sort((a, b) => b.wpm - a.wpm)
+          );
+        }
+      } catch (error) {
+        console.error('Error applying filters:', error);
+        // If API fails, filter the existing data
+        if (levelFilter === 'all') {
+          setFilteredEntries([...leaderboardEntries].sort((a, b) => b.wpm - a.wpm));
+        } else {
+          setFilteredEntries(
+            [...leaderboardEntries]
+              .filter(entry => entry.level === levelFilter)
+              .sort((a, b) => b.wpm - a.wpm)
+          );
+        }
+      }
+    };
+
+    applyFilters();
   }, [leaderboardEntries, levelFilter]);
-  
+
   // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -122,14 +164,14 @@ const Leaderboard: React.FC = () => {
       day: 'numeric' 
     });
   };
-  
+
   return (
     <LeaderboardContainer>
       <div>
         <Title>Leaderboard</Title>
         <p>See how you stack up against other players!</p>
       </div>
-      
+
       <LeaderboardCard>
         <FilterControls>
           <div>
@@ -146,7 +188,7 @@ const Leaderboard: React.FC = () => {
             </Select>
           </div>
         </FilterControls>
-        
+
         {filteredEntries.length > 0 ? (
           <LeaderboardTable>
             <TableHeader>

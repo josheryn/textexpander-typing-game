@@ -16,10 +16,8 @@ import Footer from './components/Footer'
 // Types
 import { User } from './types'
 
-// Define a type for the users object
-interface UsersData {
-  [username: string]: User;
-}
+// Services
+import { getUser, saveUser, getUserFromLocalStorage, saveUserToLocalStorage } from './services/api'
 
 const AppContainer = styled.div`
   display: flex;
@@ -39,85 +37,101 @@ const MainContent = styled.main`
 function App() {
   const [user, setUser] = useState<User | null>(null)
 
-  // Check if user is logged in from localStorage
+  // Check if user is logged in
   useEffect(() => {
-    try {
-      const currentUser = localStorage.getItem('currentUser')
-      if (currentUser) {
-        const usersData = localStorage.getItem('users')
-        if (usersData) {
-          const users: UsersData = JSON.parse(usersData)
-          if (users[currentUser]) {
-            setUser(users[currentUser])
+    const loadUser = async () => {
+      try {
+        const currentUser = localStorage.getItem('currentUser')
+        if (currentUser) {
+          // First try to get user from API
+          const userData = await getUser(currentUser)
+
+          if (userData) {
+            setUser(userData)
+          } else {
+            // If API fails, try localStorage as fallback
+            const localUser = getUserFromLocalStorage(currentUser)
+            if (localUser) {
+              setUser(localUser)
+
+              // Try to save the local user to the API for future use
+              saveUser(localUser).catch(err => 
+                console.error('Failed to sync local user to API:', err)
+              )
+            }
           }
         }
+      } catch (error) {
+        console.error('Error loading user data:', error)
+        // If there's an error, we'll just start with no user logged in
       }
-    } catch (error) {
-      console.error('Error loading user data:', error)
-      // If there's an error, we'll just start with no user logged in
     }
+
+    loadUser()
   }, [])
 
-  // Save user to localStorage when it changes
+  // Save user when it changes
   useEffect(() => {
     if (user) {
-      try {
-        // Get existing users data or initialize empty object
-        let users: UsersData = {}
-        try {
-          const usersData = localStorage.getItem('users')
-          if (usersData) {
-            users = JSON.parse(usersData)
+      // Save to API
+      saveUser(user)
+        .then(success => {
+          if (!success) {
+            // If API save fails, fall back to localStorage
+            console.warn('API save failed, falling back to localStorage')
+            saveUserToLocalStorage(user)
           }
-        } catch (error) {
-          console.error('Error parsing users data, starting fresh:', error)
-          // If there's an error parsing, we'll start with an empty users object
-        }
+        })
+        .catch(error => {
+          console.error('Error saving user data to API:', error)
+          // Fall back to localStorage
+          saveUserToLocalStorage(user)
+        })
 
-        // Update the user data
-        users[user.username] = user
-
-        // Save back to localStorage
-        localStorage.setItem('users', JSON.stringify(users))
-        localStorage.setItem('currentUser', user.username)
-      } catch (error) {
-        console.error('Error saving user data:', error)
-        // If localStorage is not available, we'll still have the user in memory
-      }
+      // Always save current user to localStorage for session persistence
+      localStorage.setItem('currentUser', user.username)
     }
   }, [user])
 
-  const handleLogin = (username: string) => {
+  const handleLogin = async (username: string) => {
     try {
-      // Check if we have existing data for this username
-      let users: UsersData = {}
-      try {
-        const usersData = localStorage.getItem('users')
-        if (usersData) {
-          users = JSON.parse(usersData)
-        }
-      } catch (error) {
-        console.error('Error parsing users data, starting fresh:', error)
-        // If there's an error parsing, we'll start with an empty users object
-      }
+      // First try to get user from API
+      const userData = await getUser(username)
 
-      if (users[username]) {
-        // User exists, use their data
-        setUser(users[username])
+      if (userData) {
+        // User exists in API, use their data
+        setUser(userData)
       } else {
-        // Create a new user
-        const newUser: User = {
-          username,
-          level: 1,
-          highScores: [],
-          unlockedAbbreviations: [],
-          lastUnlockedAbbreviation: null
+        // Try to get user from localStorage as fallback
+        const localUser = getUserFromLocalStorage(username)
+
+        if (localUser) {
+          // User exists in localStorage, use their data and sync to API
+          setUser(localUser)
+          await saveUser(localUser)
+        } else {
+          // Create a new user
+          const newUser: User = {
+            username,
+            level: 1,
+            highScores: [],
+            unlockedAbbreviations: [],
+            lastUnlockedAbbreviation: null
+          }
+
+          setUser(newUser)
+
+          // Try to save the new user to the API
+          await saveUser(newUser).catch(err => {
+            console.error('Failed to save new user to API:', err)
+            // Fall back to localStorage
+            saveUserToLocalStorage(newUser)
+          })
         }
-        setUser(newUser)
       }
     } catch (error) {
       console.error('Error during login:', error)
-      // If localStorage is not available, we'll create a new user in memory
+      // If all else fails, create a new user in memory
       const newUser: User = {
         username,
         level: 1,
@@ -126,12 +140,14 @@ function App() {
         lastUnlockedAbbreviation: null
       }
       setUser(newUser)
+      // Try to save to localStorage as last resort
+      saveUserToLocalStorage(newUser)
     }
   }
 
   const handleLogout = () => {
     try {
-      // Just remove the current user reference, but keep the users data
+      // Just remove the current user reference from localStorage
       localStorage.removeItem('currentUser')
     } catch (error) {
       console.error('Error during logout:', error)

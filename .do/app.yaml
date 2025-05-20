@@ -1,15 +1,29 @@
 name: textexpander-typing-game
-static_sites:
+services:
 - name: textexpander-typing-game
   github:
     branch: main
     deploy_on_push: true
   build_command: npm run build
-  output_dir: dist
+  run_command: npm start
   environment_slug: node-js
   env:
     - key: NODE_VERSION
       value: 18
+    - key: NODE_ENV
+      value: production
   routes:
     - path: /
-      catchall_document: index.html
+      preserve_path_prefix: true
+  http_port: 8080
+  instance_count: 1
+  instance_size_slug: basic-xxs
+
+databases:
+- name: textexpander-db
+  engine: pg
+  version: "15"
+  production: false
+  cluster_name: textexpander-postgres
+  db_name: textexpander
+  db_user: textexpander

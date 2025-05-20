@@ -41,4 +41,5 @@ export interface LeaderboardEntry {
   accuracy: number;
   level: number;
   date: string;
+  abbreviationsUsed?: number;
 }
