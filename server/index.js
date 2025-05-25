@@ -251,15 +251,6 @@ app.post('/api/leaderboard', async (req, res) => {
   }
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../dist')));
-
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
-  });
-}
-
 // Database status endpoint
 app.get('/api/db-status', async (req, res) => {
   try {
@@ -294,6 +285,15 @@ app.get('/api/db-status', async (req, res) => {
     });
   }
 });
+
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../dist')));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+  });
+}
 
 // Start server
 app.listen(PORT, () => {
