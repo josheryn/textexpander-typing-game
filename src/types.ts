@@ -36,6 +36,7 @@ export interface Abbreviation {
 
 // Leaderboard types
 export interface LeaderboardEntry {
+  id: number;
   username: string;
   wpm: number;
   accuracy: number;

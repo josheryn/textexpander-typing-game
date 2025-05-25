@@ -234,7 +234,7 @@ app.get('/api/leaderboard', async (req, res) => {
   try {
     const { level } = req.query;
 
-    let query = 'SELECT username, level, wpm, accuracy, date, abbreviations_used AS "abbreviationsUsed" FROM scores';
+    let query = 'SELECT id, username, level, wpm, accuracy, date, abbreviations_used AS "abbreviationsUsed" FROM scores';
     const params = [];
 
     if (level && level !== 'all') {

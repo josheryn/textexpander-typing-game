@@ -195,6 +195,7 @@ const Leaderboard: React.FC = () => {
               <tr>
                 <th>Rank</th>
                 <th>Player</th>
+                <th>DB ID</th>
                 <th>Level</th>
                 <th>WPM</th>
                 <th>Accuracy</th>
@@ -206,6 +207,7 @@ const Leaderboard: React.FC = () => {
                 <tr key={`${entry.username}-${entry.date}-${index}`}>
                   <RankCell>{index + 1}</RankCell>
                   <td>{entry.username}</td>
+                  <td>{entry.id}</td>
                   <td>Level {entry.level}</td>
                   <td>{entry.wpm}</td>
                   <td>{entry.accuracy}%</td>
