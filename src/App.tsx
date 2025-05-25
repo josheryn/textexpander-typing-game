@@ -37,24 +37,42 @@ const MainContent = styled.main`
 function App() {
   const [user, setUser] = useState<User | null>(null)
 
+  // Log when user state changes
+  useEffect(() => {
+    if (user) {
+      console.log('User state changed:', { 
+        username: user.username, 
+        level: user.level, 
+        highScores: user.highScores.length,
+        unlockedAbbreviations: user.unlockedAbbreviations.length
+      });
+    }
+  }, [user]);
+
   // Check if user is logged in
   useEffect(() => {
     const loadUser = async () => {
       try {
         const currentUser = localStorage.getItem('currentUser')
+        console.log('Current user from localStorage:', currentUser);
         if (currentUser) {
           // First try to get user from API
+          console.log('Fetching user data from API for user:', currentUser);
           const userData = await getUser(currentUser)
 
           if (userData) {
+            console.log('User data loaded from API:', userData);
             setUser(userData)
           } else {
+            console.log('User data not found in API, trying localStorage');
             // If API fails, try localStorage as fallback
             const localUser = getUserFromLocalStorage(currentUser)
             if (localUser) {
+              console.log('User data loaded from localStorage:', localUser);
               setUser(localUser)
 
               // Try to save the local user to the API for future use
+              console.log('Syncing localStorage user to API');
               saveUser(localUser).catch(err => 
                 console.error('Failed to sync local user to API:', err)
               )
@@ -73,10 +91,13 @@ function App() {
   // Save user when it changes
   useEffect(() => {
     if (user) {
+      console.log('Saving user data to API:', user);
       // Save to API
       saveUser(user)
         .then(success => {
-          if (!success) {
+          if (success) {
+            console.log('User data saved successfully to API');
+          } else {
             // If API save fails, fall back to localStorage
             console.warn('API save failed, falling back to localStorage')
             saveUserToLocalStorage(user)

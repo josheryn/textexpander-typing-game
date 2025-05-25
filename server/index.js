@@ -90,9 +90,12 @@ pool.connect((err, client, release) => {
 app.get('/api/users/:username', async (req, res) => {
   try {
     const { username } = req.params;
+    console.log('Getting user data for username:', username);
     const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    console.log('User data from database:', result.rows[0]);
 
     if (result.rows.length === 0) {
+      console.log('User not found in database');
       return res.status(404).json({ message: 'User not found' });
     }
 
@@ -140,9 +143,16 @@ app.get('/api/users/:username', async (req, res) => {
       } : null
     };
 
+    console.log('Sending user data to client:', { 
+      username: user.username, 
+      level: user.level, 
+      highScores: user.highScores.length,
+      unlockedAbbreviations: user.unlockedAbbreviations.length
+    });
     res.json(user);
   } catch (err) {
-    console.error(err);
+    console.error('Error retrieving user data from database:', err);
+    console.error('Error details:', { username: req.params.username });
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -154,6 +164,7 @@ app.post('/api/users', async (req, res) => {
   try {
     await client.query('BEGIN');
     const { username, level, highScores, unlockedAbbreviations, lastUnlockedAbbreviation } = req.body;
+    console.log('Saving user data to database:', { username, level, unlockedAbbreviations: unlockedAbbreviations?.length || 0 });
 
     // Check if user exists
     const userExists = await client.query('SELECT * FROM users WHERE username = $1', [username]);
@@ -201,10 +212,17 @@ app.post('/api/users', async (req, res) => {
     }
 
     await client.query('COMMIT');
+    console.log('User data saved successfully to database for user:', username);
     res.status(201).json({ message: 'User data saved successfully' });
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error(err);
+    console.error('Error saving user data to database:', err);
+    console.error('Error details:', { 
+      username, 
+      level, 
+      highScores: highScores?.length || 0,
+      unlockedAbbreviations: unlockedAbbreviations?.length || 0
+    });
     res.status(500).json({ message: 'Server error' });
   } finally {
     client.release();

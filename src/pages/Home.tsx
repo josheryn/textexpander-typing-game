@@ -193,6 +193,14 @@ const Home: React.FC<HomeProps> = ({ user }) => {
   const [highestWPM, setHighestWPM] = useState(0);
   const [averageAccuracy, setAverageAccuracy] = useState(0);
 
+  // Log user data when Home component is rendered
+  console.log('Home component rendered with user:', { 
+    username: user.username, 
+    level: user.level, 
+    highScores: user.highScores.length,
+    unlockedAbbreviations: user.unlockedAbbreviations.length
+  });
+
   useEffect(() => {
     // Calculate highest WPM from user's high scores
     if (user.highScores.length > 0) {
@@ -242,6 +250,13 @@ const Home: React.FC<HomeProps> = ({ user }) => {
         <LevelsGrid>
           {gameLevels.map((level) => {
             const isUnlocked = user.level >= level.id;
+
+            // Log which levels are unlocked
+            console.log(`Level ${level.id} unlocked status:`, { 
+              levelId: level.id, 
+              userLevel: user.level, 
+              isUnlocked 
+            });
 
             return (
               <LevelCard key={level.id} isUnlocked={isUnlocked}>

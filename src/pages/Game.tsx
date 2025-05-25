@@ -509,6 +509,12 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     }
 
     // Set the user with all updates in a single operation
+    console.log('Updating user after completing level:', { 
+      username: updatedUser.username, 
+      oldLevel: user.level, 
+      newLevel: updatedUser.level,
+      passed
+    });
     setUser(updatedUser);
 
     // Add score to global leaderboard
