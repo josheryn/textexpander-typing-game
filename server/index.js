@@ -24,8 +24,7 @@ app.use(express.json());
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? {
-    rejectUnauthorized: false, // Required for DigitalOcean managed database
-    checkServerIdentity: () => undefined // Skip server identity check
+    rejectUnauthorized: false // Required for DigitalOcean managed database
   } : false // Disable SSL for local development
 });
 
