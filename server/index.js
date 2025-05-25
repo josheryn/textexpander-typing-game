@@ -246,10 +246,10 @@ app.get('/api/leaderboard', async (req, res) => {
   try {
     const { level } = req.query;
 
-    // Use username as the ID field to display user ID instead of score ID
+    // Use the actual ID field from the scores table
     let query = `
       SELECT 
-        s.username AS id, 
+        s.id, 
         s.username, 
         s.level, 
         s.wpm, 
