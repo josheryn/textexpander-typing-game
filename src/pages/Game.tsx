@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { User, GameScore, Abbreviation, LeaderboardEntry, GameLevel } from '../types';
 import { getLevelById, getAbbreviationsForLevel, getLevelWithUnlockedAbbreviation } from '../data/gameData';
-import { addLeaderboardScore, addLeaderboardScoreToLocalStorage } from '../services/api';
+import { addLeaderboardScore, addLeaderboardScoreToLocalStorage, saveUser, saveUserToLocalStorage } from '../services/api';
 
 interface GameProps {
   user: User;
@@ -516,6 +516,21 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
       passed
     });
     setUser(updatedUser);
+
+    // Explicitly save user data to database to ensure level persistence
+    saveUser(updatedUser)
+      .then(success => {
+        if (success) {
+          console.log('User level and unlocked abbreviations saved successfully to database');
+        } else {
+          console.warn('Failed to save user level to database, falling back to localStorage');
+          saveUserToLocalStorage(updatedUser);
+        }
+      })
+      .catch(error => {
+        console.error('Error saving user level to database:', error);
+        saveUserToLocalStorage(updatedUser);
+      });
 
     // Add score to global leaderboard
     const leaderboardEntry: LeaderboardEntry = {

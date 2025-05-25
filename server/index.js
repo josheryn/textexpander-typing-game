@@ -234,15 +234,26 @@ app.get('/api/leaderboard', async (req, res) => {
   try {
     const { level } = req.query;
 
-    let query = 'SELECT id, username, level, wpm, accuracy, date, abbreviations_used AS "abbreviationsUsed" FROM scores';
+    // Use username as the ID field to display user ID instead of score ID
+    let query = `
+      SELECT 
+        s.username AS id, 
+        s.username, 
+        s.level, 
+        s.wpm, 
+        s.accuracy, 
+        s.date, 
+        s.abbreviations_used AS "abbreviationsUsed"
+      FROM scores s
+    `;
     const params = [];
 
     if (level && level !== 'all') {
-      query += ' WHERE level = $1';
+      query += ' WHERE s.level = $1';
       params.push(level);
     }
 
-    query += ' ORDER BY wpm DESC LIMIT 100';
+    query += ' ORDER BY s.wpm DESC LIMIT 100';
 
     const result = await pool.query(query, params);
     res.json(result.rows);
