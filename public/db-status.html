@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Status Check</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .status-container {
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #eee;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .loading {
+            color: #007bff;
+            font-weight: bold;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0069d9;
+        }
+        .timestamp {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>TextExpander Database Status</h1>
+    
+    <div class="status-container">
+        <h2>Current Status</h2>
+        <div id="status" class="loading">Loading database status...</div>
+        <pre id="result">Fetching data...</pre>
+        <div id="timestamp" class="timestamp"></div>
+        <button id="refresh">Refresh Status</button>
+    </div>
+
+    <div class="status-container">
+        <h2>What This Means</h2>
+        <p>This page shows the current status of the database connection for the TextExpander Typing Game application.</p>
+        
+        <h3>Status Fields:</h3>
+        <ul>
+            <li><strong>status</strong>: Whether the application can connect to the database ("connected" or "error")</li>
+            <li><strong>timestamp</strong>: When the status check was performed</li>
+            <li><strong>tablesInitialized</strong>: Whether the database tables have been created</li>
+            <li><strong>databaseUrl</strong>: Whether the DATABASE_URL environment variable is configured</li>
+        </ul>
+        
+        <h3>Troubleshooting:</h3>
+        <p>If you see an error or the status is not "connected", check the following:</p>
+        <ul>
+            <li>Verify that the DATABASE_URL environment variable is correctly set in DigitalOcean</li>
+            <li>Ensure that the database service is running</li>
+            <li>Check that the SSL certificate settings are correct</li>
+            <li>Review the application logs for more detailed error messages</li>
+        </ul>
+    </div>
+
+    <script>
+        // Function to fetch and display the database status
+        function checkDatabaseStatus() {
+            const statusElement = document.getElementById('status');
+            const resultElement = document.getElementById('result');
+            const timestampElement = document.getElementById('timestamp');
+            
+            statusElement.className = 'loading';
+            statusElement.textContent = 'Loading database status...';
+            resultElement.textContent = 'Fetching data...';
+            
+            fetch('/api/db-status')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update the status display
+                    if (data.status === 'connected') {
+                        statusElement.className = 'success';
+                        statusElement.textContent = '✅ Database Connected';
+                    } else {
+                        statusElement.className = 'error';
+                        statusElement.textContent = '❌ Database Connection Error';
+                    }
+                    
+                    // Format and display the full JSON response
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                    
+                    // Update timestamp
+                    const now = new Date();
+                    timestampElement.textContent = `Last checked: ${now.toLocaleString()}`;
+                })
+                .catch(error => {
+                    statusElement.className = 'error';
+                    statusElement.textContent = '❌ Error Fetching Database Status';
+                    resultElement.textContent = `Error: ${error.message}\n\nThis could indicate that the server is not running or the API endpoint is not accessible.`;
+                    
+                    // Update timestamp
+                    const now = new Date();
+                    timestampElement.textContent = `Last checked: ${now.toLocaleString()}`;
+                });
+        }
+        
+        // Run the check when the page loads
+        document.addEventListener('DOMContentLoaded', checkDatabaseStatus);
+        
+        // Set up refresh button
+        document.getElementById('refresh').addEventListener('click', checkDatabaseStatus);
+    </script>
+</body>
+</html>

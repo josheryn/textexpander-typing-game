@@ -24,6 +24,9 @@ const PORT = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, '../public')));
+
 // Database connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,

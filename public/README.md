@@ -39,3 +39,9 @@ The same logo image is also used as the favicon for the website. If you replace 
 ## Other Static Assets
 
 You can place other static assets (additional images, fonts, etc.) in the appropriate subdirectories of `/public/`.
+
+## Database Status Page
+
+This directory also contains a database status page (`db-status.html`) that helps diagnose database connection issues. This page fetches and displays the response from the `/api/db-status` endpoint in a user-friendly format.
+
+For more information about this page, see the `db-status-page.md` file in the project root.
