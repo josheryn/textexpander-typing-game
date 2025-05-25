@@ -12,6 +12,8 @@ services:
       value: 18
     - key: NODE_ENV
       value: production
+    - key: NODE_TLS_REJECT_UNAUTHORIZED
+      value: "0"
   routes:
     - path: /
       preserve_path_prefix: true
