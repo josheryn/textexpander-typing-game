@@ -201,6 +201,9 @@ const Home: React.FC<HomeProps> = ({ user }) => {
     unlockedAbbreviations: user.unlockedAbbreviations.length
   });
 
+  // Log the user level specifically for debugging
+  console.log('User level in Home component:', user.level, 'Type:', typeof user.level);
+
   useEffect(() => {
     // Calculate highest WPM from user's high scores
     if (user.highScores && user.highScores.length > 0) {
@@ -253,13 +256,21 @@ const Home: React.FC<HomeProps> = ({ user }) => {
         <SectionTitle>Game Levels</SectionTitle>
         <LevelsGrid>
           {gameLevels.map((level) => {
-            const isUnlocked = user.level >= level.id;
+            // Convert both values to numbers to ensure proper comparison
+            const userLevelNum = Number(user.level);
+            const levelIdNum = Number(level.id);
+            const isUnlocked = userLevelNum >= levelIdNum;
 
-            // Log which levels are unlocked
+            // Log which levels are unlocked with detailed type information
             console.log(`Level ${level.id} unlocked status:`, { 
-              levelId: level.id, 
-              userLevel: user.level, 
-              isUnlocked 
+              levelId: level.id,
+              levelIdType: typeof level.id,
+              levelIdNum,
+              userLevel: user.level,
+              userLevelType: typeof user.level,
+              userLevelNum,
+              isUnlocked,
+              comparison: `${userLevelNum} >= ${levelIdNum}`
             });
 
             return (

@@ -94,6 +94,11 @@ app.get('/api/users/:username', async (req, res) => {
     const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
     console.log('User data from database:', result.rows[0]);
 
+    // Log the user level specifically for debugging
+    if (result.rows.length > 0) {
+      console.log('User level from database:', result.rows[0].level);
+    }
+
     if (result.rows.length === 0) {
       console.log('User not found in database');
       return res.status(404).json({ message: 'User not found' });
@@ -119,7 +124,7 @@ app.get('/api/users/:username', async (req, res) => {
 
     const user = {
       username: result.rows[0].username,
-      level: result.rows[0].level,
+      level: Number(result.rows[0].level), // Ensure level is a number
       highScores: scoresResult.rows.map(score => ({
         level: score.level,
         wpm: score.wpm,
@@ -164,7 +169,14 @@ app.post('/api/users', async (req, res) => {
   try {
     await client.query('BEGIN');
     const { username, level, highScores, unlockedAbbreviations, lastUnlockedAbbreviation } = req.body;
-    console.log('Saving user data to database:', { username, level, unlockedAbbreviations: unlockedAbbreviations?.length || 0 });
+    // Ensure level is a number
+    const numericLevel = Number(level);
+    console.log('Saving user data to database:', { 
+      username, 
+      level, 
+      numericLevel,
+      unlockedAbbreviations: unlockedAbbreviations?.length || 0 
+    });
 
     // Check if user exists
     const userExists = await client.query('SELECT * FROM users WHERE username = $1', [username]);
@@ -178,13 +190,13 @@ app.post('/api/users', async (req, res) => {
       // Create new user
       await client.query(
         'INSERT INTO users (username, level, last_unlocked_abbreviation_id) VALUES ($1, $2, $3)',
-        [username, level, lastUnlockedAbbreviationId]
+        [username, numericLevel, lastUnlockedAbbreviationId]
       );
     } else {
       // Update existing user
       await client.query(
         'UPDATE users SET level = $1, last_unlocked_abbreviation_id = $2 WHERE username = $3',
-        [level, lastUnlockedAbbreviationId, username]
+        [numericLevel, lastUnlockedAbbreviationId, username]
       );
 
       // Clear existing relationships to rebuild them
