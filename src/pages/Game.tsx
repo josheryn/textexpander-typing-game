@@ -519,6 +519,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
     // Add score to global leaderboard
     const leaderboardEntry: LeaderboardEntry = {
+      id: 0, // Temporary ID, will be replaced by the server
       username: user.username,
       level: Number(levelId),
       wpm: calculatedWpm,
