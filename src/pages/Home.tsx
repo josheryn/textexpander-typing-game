@@ -203,13 +203,17 @@ const Home: React.FC<HomeProps> = ({ user }) => {
 
   useEffect(() => {
     // Calculate highest WPM from user's high scores
-    if (user.highScores.length > 0) {
+    if (user.highScores && user.highScores.length > 0) {
       const maxWPM = Math.max(...user.highScores.map(score => score.wpm));
       setHighestWPM(maxWPM);
 
       // Calculate average accuracy
       const totalAccuracy = user.highScores.reduce((sum, score) => sum + score.accuracy, 0);
       setAverageAccuracy(Math.round(totalAccuracy / user.highScores.length));
+    } else {
+      // Set default values when there are no high scores
+      setHighestWPM(0);
+      setAverageAccuracy(0);
     }
   }, [user.highScores]);
 
