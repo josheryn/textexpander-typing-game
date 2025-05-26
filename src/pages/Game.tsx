@@ -565,6 +565,15 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
         updatedUser.unlockedAbbreviations = [...user.unlockedAbbreviations, currentAbbrevToUnlock];
         updatedUser.lastUnlockedAbbreviation = currentAbbrevToUnlock;
       }
+
+      // Automatically progress to the next level after a short delay
+      // This will work regardless of whether we're using the database or localStorage
+      if (nextLevel) {
+        setTimeout(() => {
+          console.log(`Auto-progressing to Level ${nextLevelId} after completing Level ${levelId}`);
+          goToNextLevel();
+        }, 3000); // 3-second delay to allow the user to see their results
+      }
     }
 
     // Set the user with all updates in a single operation

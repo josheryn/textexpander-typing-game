@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { User } from '../types';
-import { gameLevels, unlockAbbreviationsForLevel } from '../data/gameData';
+import { gameLevels, unlockAbbreviationsForLevel, getLevelById } from '../data/gameData';
 import DatabaseStatus from '../components/DatabaseStatus';
 import { saveUser, saveUserToLocalStorage } from '../services/api';
 
@@ -210,6 +210,7 @@ const NoAbbreviations = styled.p`
 `;
 
 const Home: React.FC<HomeProps> = ({ user, setUser }) => {
+  const navigate = useNavigate();
   const [highestWPM, setHighestWPM] = useState(0);
   const [averageAccuracy, setAverageAccuracy] = useState(0);
 
@@ -263,6 +264,9 @@ const Home: React.FC<HomeProps> = ({ user, setUser }) => {
 
   // Log the user level specifically for debugging
   console.log('User level in Home component:', user.level, 'Type:', typeof user.level);
+
+  // Auto-redirect functionality has been removed as per user request
+  // This allows users to see all levels on the home screen without being automatically directed to a specific level
 
   useEffect(() => {
     // Calculate highest WPM from user's high scores
