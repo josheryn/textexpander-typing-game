@@ -122,6 +122,24 @@ const LevelRequirement = styled.div`
   margin-bottom: 1rem;
 `;
 
+const HighWPM = styled.div`
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const WPMBadge = styled.span`
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+`;
+
 const PlayButton = styled(Link)<{ isUnlocked: boolean }>`
   padding: 0.75rem;
   background-color: ${props => props.isUnlocked ? 'var(--primary-color)' : 'var(--border-color)'};
@@ -271,6 +289,15 @@ const Home: React.FC<HomeProps> = ({ user }) => {
             const isUnlocked = userLevelNum >= levelIdNum || 
                               (maxCompletedLevel >= levelIdNum - 1);
 
+            // Check if the level has been completed (has a score)
+            const levelScores = user.highScores.filter(score => score.level === levelIdNum);
+            const isCompleted = levelScores.length > 0;
+
+            // Find the highest WPM for this level if it has been completed
+            const highestLevelWPM = isCompleted 
+              ? Math.max(...levelScores.map(score => score.wpm))
+              : 0;
+
             // Log which levels are unlocked with detailed type information
             console.log(`Level ${level.id} unlocked status:`, { 
               levelId: level.id,
@@ -281,6 +308,8 @@ const Home: React.FC<HomeProps> = ({ user }) => {
               userLevelNum,
               maxCompletedLevel,
               isUnlocked,
+              isCompleted,
+              highestLevelWPM,
               comparison: `${userLevelNum} >= ${levelIdNum} || ${maxCompletedLevel} >= ${levelIdNum - 1}`
             });
 
@@ -289,6 +318,11 @@ const Home: React.FC<HomeProps> = ({ user }) => {
                 <LevelTitle>Level {level.id}: {level.name}</LevelTitle>
                 <LevelDescription>{level.description}</LevelDescription>
                 <LevelRequirement>Required: {level.requiredWPM} WPM</LevelRequirement>
+                {isCompleted && (
+                  <HighWPM>
+                    Your Best: <WPMBadge>{highestLevelWPM} WPM</WPMBadge>
+                  </HighWPM>
+                )}
                 <PlayButton 
                   to={`/game/${level.id}`} 
                   isUnlocked={isUnlocked}
