@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { User } from '../types';
-import { gameLevels } from '../data/gameData';
+import { gameLevels, unlockAbbreviationsForLevel } from '../data/gameData';
 import DatabaseStatus from '../components/DatabaseStatus';
+import { saveUser, saveUserToLocalStorage } from '../services/api';
 
 interface HomeProps {
   user: User;
+  setUser?: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const HomeContainer = styled.div`
@@ -207,9 +209,49 @@ const NoAbbreviations = styled.p`
   font-style: italic;
 `;
 
-const Home: React.FC<HomeProps> = ({ user }) => {
+const Home: React.FC<HomeProps> = ({ user, setUser }) => {
   const [highestWPM, setHighestWPM] = useState(0);
   const [averageAccuracy, setAverageAccuracy] = useState(0);
+
+  // Ensure all abbreviations up to the user's level are unlocked when the component mounts
+  useEffect(() => {
+    if (user && setUser) {
+      // Get all abbreviations that should be unlocked based on user's level
+      const updatedUnlockedAbbreviations = unlockAbbreviationsForLevel(
+        user.level,
+        user.unlockedAbbreviations
+      );
+
+      // Only update if there are new abbreviations to unlock
+      if (updatedUnlockedAbbreviations.length > user.unlockedAbbreviations.length) {
+        console.log(`Home: Unlocking abbreviations for level ${user.level}. Before: ${user.unlockedAbbreviations.length}, After: ${updatedUnlockedAbbreviations.length}`);
+
+        // Create updated user object
+        const updatedUser = {
+          ...user,
+          unlockedAbbreviations: updatedUnlockedAbbreviations
+        };
+
+        // Update user state
+        setUser(updatedUser);
+
+        // Save to database
+        saveUser(updatedUser)
+          .then(success => {
+            if (success) {
+              console.log('Home: User abbreviations updated successfully');
+            } else {
+              console.warn('Home: Failed to save updated abbreviations to database, falling back to localStorage');
+              saveUserToLocalStorage(updatedUser);
+            }
+          })
+          .catch(error => {
+            console.error('Home: Error saving updated abbreviations to database:', error);
+            saveUserToLocalStorage(updatedUser);
+          });
+      }
+    }
+  }, [user, setUser]);
 
   // Log user data when Home component is rendered
   console.log('Home component rendered with user:', { 

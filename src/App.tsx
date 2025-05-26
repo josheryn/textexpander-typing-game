@@ -182,7 +182,7 @@ function App() {
       <Header user={user} onLogout={handleLogout} />
       <MainContent>
         <Routes>
-          <Route path="/" element={user ? <Home user={user} /> : <Navigate to="/login" />} />
+          <Route path="/" element={user ? <Home user={user} setUser={setUser} /> : <Navigate to="/login" />} />
           <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
           <Route path="/game/:level" element={user ? <Game user={user} setUser={setUser} /> : <Navigate to="/login" />} />
           <Route path="/leaderboard" element={<Leaderboard />} />

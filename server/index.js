@@ -117,6 +117,26 @@ app.get('/api/users/:username', async (req, res) => {
         firstScore: scoresResult.rows[0],
         accuracyValues: scoresResult.rows.map(score => score.accuracy)
       });
+
+      // Calculate the highest level the user has completed based on their scores
+      const maxCompletedLevel = Math.max(...scoresResult.rows.map(score => score.level));
+      console.log(`Highest completed level based on scores: ${maxCompletedLevel}`);
+
+      // If the user's stored level is lower than their highest completed level + 1,
+      // update their level in the database
+      const storedLevel = Number(result.rows[0].level);
+      const calculatedLevel = maxCompletedLevel + 1; // Next level after highest completed
+
+      if (calculatedLevel > storedLevel) {
+        console.log(`Updating user level from ${storedLevel} to ${calculatedLevel}`);
+        await pool.query(
+          'UPDATE users SET level = $1 WHERE username = $2',
+          [calculatedLevel, username]
+        );
+
+        // Update the level in our result for the response
+        result.rows[0].level = calculatedLevel;
+      }
     }
 
     // Get user's unlocked abbreviations
