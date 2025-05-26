@@ -279,10 +279,20 @@ app.post('/api/users', async (req, res) => {
     if (unlockedAbbreviations) {
       console.log(`Processing ${unlockedAbbreviations.length} unlocked abbreviations for user ${username}`);
       for (const abbr of unlockedAbbreviations) {
-        await client.query(
-          'INSERT INTO user_abbreviations (username, abbreviation_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-          [username, abbr.id]
+        // Check if the abbreviation exists in the abbreviations table before inserting
+        const abbrExists = await client.query(
+          'SELECT 1 FROM abbreviations WHERE id = $1',
+          [abbr.id]
         );
+
+        if (abbrExists.rows.length > 0) {
+          await client.query(
+            'INSERT INTO user_abbreviations (username, abbreviation_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [username, abbr.id]
+          );
+        } else {
+          console.warn(`Skipping abbreviation ${abbr.id} for user ${username} as it does not exist in the abbreviations table`);
+        }
       }
     } else {
       console.log(`No unlockedAbbreviations provided for user ${username}`);
@@ -298,10 +308,10 @@ app.post('/api/users', async (req, res) => {
     await client.query('ROLLBACK');
     console.error('Error saving user data to database:', err);
     console.error('Error details:', { 
-      username, 
-      level, 
-      highScores: highScores?.length || 0,
-      unlockedAbbreviations: unlockedAbbreviations?.length || 0
+      username: req.body.username, 
+      level: req.body.level, 
+      highScores: req.body.highScores?.length || 0,
+      unlockedAbbreviations: req.body.unlockedAbbreviations?.length || 0
     });
     res.status(500).json({ message: 'Server error' });
   } finally {
@@ -355,17 +365,36 @@ app.post('/api/leaderboard', async (req, res) => {
   try {
     const { username, level, wpm, accuracy, date, abbreviationsUsed } = req.body;
 
+    // Validate input data
+    if (!username || !level || !wpm || accuracy === undefined || !date) {
+      console.error('Invalid leaderboard data:', { username, level, wpm, accuracy, date });
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Ensure numeric values are properly formatted
+    const numericLevel = Number(level);
+    const numericWpm = Number(wpm);
+
+    // Format accuracy to have at most 2 decimal places (NUMERIC(5,2) in the database)
+    const numericAccuracy = parseFloat(Number(accuracy).toFixed(2));
+
+    // Validate numeric values
+    if (isNaN(numericLevel) || isNaN(numericWpm) || isNaN(numericAccuracy)) {
+      console.error('Invalid numeric values:', { level, wpm, accuracy, numericLevel, numericWpm, numericAccuracy });
+      return res.status(400).json({ message: 'Invalid numeric values' });
+    }
+
     // Check if this exact score already exists in the database
     const existingScore = await pool.query(
       'SELECT id FROM scores WHERE username = $1 AND level = $2 AND wpm = $3 AND accuracy = $4 AND date = $5',
-      [username, level, wpm, accuracy, date]
+      [username, numericLevel, numericWpm, numericAccuracy, date]
     );
 
     // Only insert if the score doesn't already exist
     if (existingScore.rows.length === 0) {
       await pool.query(
         'INSERT INTO scores (username, level, wpm, accuracy, date, abbreviations_used) VALUES ($1, $2, $3, $4, $5, $6)',
-        [username, level, wpm, accuracy, date, abbreviationsUsed || 0]
+        [username, numericLevel, numericWpm, numericAccuracy, date, abbreviationsUsed || 0]
       );
       res.status(201).json({ message: 'Score added to leaderboard' });
     } else {
@@ -373,7 +402,7 @@ app.post('/api/leaderboard', async (req, res) => {
       res.status(200).json({ message: 'Score already exists in leaderboard' });
     }
   } catch (err) {
-    console.error(err);
+    console.error('Error adding score to leaderboard:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
