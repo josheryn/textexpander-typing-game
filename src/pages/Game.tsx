@@ -362,9 +362,14 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     // Get abbreviations for the effective level
     const abbrs = getAbbreviationsForLevel(effectiveLevel);
 
-    console.log(`Setting available abbreviations. User level: ${user.level}, Current level: ${currentLevelId}, Effective level: ${effectiveLevel}, Abbreviations count: ${abbrs.length}`);
+    // Remove duplicates by creating a Map with abbreviation ID as key
+    const uniqueAbbrs = Array.from(
+      new Map(abbrs.map(abbr => [abbr.id, abbr])).values()
+    );
 
-    setAvailableAbbreviations(abbrs);
+    console.log(`Setting available abbreviations. User level: ${user.level}, Current level: ${currentLevelId}, Effective level: ${effectiveLevel}, Abbreviations count: ${uniqueAbbrs.length} (before deduplication: ${abbrs.length})`);
+
+    setAvailableAbbreviations(uniqueAbbrs);
   }, [user.level, levelId]);
 
   // Add keyboard event listener to start game on key press when in 'ready' state
@@ -630,7 +635,18 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
   const goToNextLevel = () => {
     // Use the levelId parameter to determine the next level
     const nextLevelId = Number(levelId) + 1;
+
+    // Get the next level before navigation
+    const nextLevel = getLevelById(nextLevelId);
+
+    // Navigate to the next level
     navigate(`/game/${nextLevelId}`);
+
+    // Update the level state directly
+    if (nextLevel) {
+      const modifiedLevel = getLevelWithUnlockedAbbreviation(nextLevel, lastUnlockedAbbreviation);
+      setLevel(modifiedLevel);
+    }
   };
 
   // Insert abbreviation into the text
