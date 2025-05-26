@@ -295,8 +295,15 @@ const Home: React.FC<HomeProps> = ({ user }) => {
             // A level is unlocked if:
             // 1. The user's level is greater than or equal to the level ID (original logic)
             // 2. OR the user has completed the previous level (has a score for it)
+            // 3. OR the user has a score for this level (already completed it)
+            // 4. OR the user has a score for a higher level (implying this level should be accessible)
+            const hasScoreForThisLevel = user.highScores.some(score => score.level === levelIdNum);
+            const hasScoreForHigherLevel = user.highScores.some(score => score.level > levelIdNum);
+
             const isUnlocked = userLevelNum >= levelIdNum || 
-                              (maxCompletedLevel >= levelIdNum - 1);
+                              (maxCompletedLevel >= levelIdNum - 1) ||
+                              hasScoreForThisLevel ||
+                              hasScoreForHigherLevel;
 
             // Check if the level has been completed (has a score)
             const levelScores = user.highScores.filter(score => score.level === levelIdNum);
@@ -319,7 +326,9 @@ const Home: React.FC<HomeProps> = ({ user }) => {
               isUnlocked,
               isCompleted,
               highestLevelWPM,
-              comparison: `${userLevelNum} >= ${levelIdNum} || ${maxCompletedLevel} >= ${levelIdNum - 1}`
+              hasScoreForThisLevel,
+              hasScoreForHigherLevel,
+              comparison: `${userLevelNum} >= ${levelIdNum} || ${maxCompletedLevel} >= ${levelIdNum - 1} || hasScoreForThisLevel || hasScoreForHigherLevel`
             });
 
             return (
