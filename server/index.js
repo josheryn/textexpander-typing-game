@@ -213,15 +213,8 @@ app.post('/api/users', async (req, res) => {
       }
     }
 
-    // Add high scores
-    if (highScores && highScores.length > 0) {
-      for (const score of highScores) {
-        await client.query(
-          'INSERT INTO scores (username, level, wpm, accuracy, date, abbreviations_used) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING',
-          [username, score.level, score.wpm, score.accuracy, score.date, score.abbreviationsUsed]
-        );
-      }
-    }
+    // We don't add high scores here anymore
+    // Scores should only be added when completing a game level through the /api/leaderboard endpoint
 
     await client.query('COMMIT');
     console.log('User data saved successfully to database for user:', username);
@@ -280,12 +273,23 @@ app.post('/api/leaderboard', async (req, res) => {
   try {
     const { username, level, wpm, accuracy, date, abbreviationsUsed } = req.body;
 
-    await pool.query(
-      'INSERT INTO scores (username, level, wpm, accuracy, date, abbreviations_used) VALUES ($1, $2, $3, $4, $5, $6)',
-      [username, level, wpm, accuracy, date, abbreviationsUsed || 0]
+    // Check if this exact score already exists in the database
+    const existingScore = await pool.query(
+      'SELECT id FROM scores WHERE username = $1 AND level = $2 AND wpm = $3 AND accuracy = $4 AND date = $5',
+      [username, level, wpm, accuracy, date]
     );
 
-    res.status(201).json({ message: 'Score added to leaderboard' });
+    // Only insert if the score doesn't already exist
+    if (existingScore.rows.length === 0) {
+      await pool.query(
+        'INSERT INTO scores (username, level, wpm, accuracy, date, abbreviations_used) VALUES ($1, $2, $3, $4, $5, $6)',
+        [username, level, wpm, accuracy, date, abbreviationsUsed || 0]
+      );
+      res.status(201).json({ message: 'Score added to leaderboard' });
+    } else {
+      // Score already exists, return success but indicate it was a duplicate
+      res.status(200).json({ message: 'Score already exists in leaderboard' });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
