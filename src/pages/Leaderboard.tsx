@@ -155,13 +155,17 @@ const Leaderboard: React.FC = () => {
     applyFilters();
   }, [leaderboardEntries, levelFilter]);
 
-  // Format date for display
+  // Format date for display with time in local timezone
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, { 
+    return date.toLocaleString(undefined, { 
       year: 'numeric', 
       month: 'short', 
-      day: 'numeric' 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
     });
   };
 
@@ -195,7 +199,6 @@ const Leaderboard: React.FC = () => {
               <tr>
                 <th>Rank</th>
                 <th>Player</th>
-                <th>DB ID</th>
                 <th>Level</th>
                 <th>WPM</th>
                 <th>Accuracy</th>
@@ -207,7 +210,6 @@ const Leaderboard: React.FC = () => {
                 <tr key={`${entry.username}-${entry.date}-${index}`}>
                   <RankCell>{index + 1}</RankCell>
                   <td>{entry.username}</td>
-                  <td>{entry.id}</td>
                   <td>Level {entry.level}</td>
                   <td>{entry.wpm}</td>
                   <td>{entry.accuracy}%</td>

@@ -478,8 +478,20 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     const passed = level ? calculatedWpm >= level.requiredWPM : false;
 
     if (passed) {
-      // Level up the user
-      const newLevel = Math.max(user.level, Number(levelId) + 1);
+      // Find the maximum level in the user's high scores
+      const maxCompletedLevel = updatedUser.highScores.length > 0 
+        ? Math.max(...updatedUser.highScores.map(score => score.level))
+        : 0;
+
+      // Level up the user to the maximum of:
+      // 1. Their current level
+      // 2. The completed level + 1
+      // 3. The maximum completed level + 1
+      const newLevel = Math.max(
+        user.level, 
+        Number(levelId) + 1,
+        maxCompletedLevel + 1
+      );
       updatedUser.level = newLevel;
 
       // Get the next level's ID

@@ -259,7 +259,17 @@ const Home: React.FC<HomeProps> = ({ user }) => {
             // Convert both values to numbers to ensure proper comparison
             const userLevelNum = Number(user.level);
             const levelIdNum = Number(level.id);
-            const isUnlocked = userLevelNum >= levelIdNum;
+
+            // Find the maximum level in the user's high scores
+            const maxCompletedLevel = user.highScores.length > 0 
+              ? Math.max(...user.highScores.map(score => score.level))
+              : 0;
+
+            // A level is unlocked if:
+            // 1. The user's level is greater than or equal to the level ID (original logic)
+            // 2. OR the user has completed the previous level (has a score for it)
+            const isUnlocked = userLevelNum >= levelIdNum || 
+                              (maxCompletedLevel >= levelIdNum - 1);
 
             // Log which levels are unlocked with detailed type information
             console.log(`Level ${level.id} unlocked status:`, { 
@@ -269,8 +279,9 @@ const Home: React.FC<HomeProps> = ({ user }) => {
               userLevel: user.level,
               userLevelType: typeof user.level,
               userLevelNum,
+              maxCompletedLevel,
               isUnlocked,
-              comparison: `${userLevelNum} >= ${levelIdNum}`
+              comparison: `${userLevelNum} >= ${levelIdNum} || ${maxCompletedLevel} >= ${levelIdNum - 1}`
             });
 
             return (

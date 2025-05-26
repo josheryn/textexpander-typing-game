@@ -191,13 +191,17 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     return 0;
   }, [user.highScores]);
 
-  // Format date for display
+  // Format date for display with time in local timezone
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, { 
+    return date.toLocaleString(undefined, { 
       year: 'numeric', 
       month: 'short', 
-      day: 'numeric' 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
     });
   };
 
