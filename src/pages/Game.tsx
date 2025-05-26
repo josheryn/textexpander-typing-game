@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { User, GameScore, Abbreviation, LeaderboardEntry, GameLevel } from '../types';
-import { getLevelById, getAbbreviationsForLevel, getLevelWithUnlockedAbbreviation } from '../data/gameData';
+import { getLevelById, getAbbreviationsForLevel, getLevelWithUnlockedAbbreviation, unlockAbbreviationsForLevel } from '../data/gameData';
 import { addLeaderboardScore, addLeaderboardScoreToLocalStorage, saveUser, saveUserToLocalStorage } from '../services/api';
 
 interface GameProps {
@@ -316,14 +316,56 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     setAccuracy(100);
     setUnlockedAbbreviation(null);
     setAbbreviationsUsed(0);
-  }, [levelId, navigate]);
 
-  // Update available abbreviations when user level changes
+    // Ensure all abbreviations up to this level are unlocked
+    const updatedUnlockedAbbreviations = unlockAbbreviationsForLevel(
+      Number(levelId),
+      user.unlockedAbbreviations
+    );
+
+    // Only update if there are new abbreviations to unlock
+    if (updatedUnlockedAbbreviations.length > user.unlockedAbbreviations.length) {
+      console.log(`Unlocking abbreviations for level ${levelId}. Before: ${user.unlockedAbbreviations.length}, After: ${updatedUnlockedAbbreviations.length}`);
+
+      // Create updated user object
+      const updatedUser = {
+        ...user,
+        unlockedAbbreviations: updatedUnlockedAbbreviations
+      };
+
+      // Update user state
+      setUser(updatedUser);
+
+      // Save to database
+      saveUser(updatedUser)
+        .then(success => {
+          if (success) {
+            console.log('User abbreviations updated successfully');
+          } else {
+            console.warn('Failed to save updated abbreviations to database, falling back to localStorage');
+            saveUserToLocalStorage(updatedUser);
+          }
+        })
+        .catch(error => {
+          console.error('Error saving updated abbreviations to database:', error);
+          saveUserToLocalStorage(updatedUser);
+        });
+    }
+  }, [levelId, navigate, user, setUser]);
+
+  // Update available abbreviations when user level or levelId changes
   useEffect(() => {
-    // Always update abbreviations regardless of level state
-    const abbrs = getAbbreviationsForLevel(user.level);
+    // Use the maximum of user.level and current levelId to ensure all abbreviations are available
+    const currentLevelId = Number(levelId);
+    const effectiveLevel = Math.max(user.level, currentLevelId);
+
+    // Get abbreviations for the effective level
+    const abbrs = getAbbreviationsForLevel(effectiveLevel);
+
+    console.log(`Setting available abbreviations. User level: ${user.level}, Current level: ${currentLevelId}, Effective level: ${effectiveLevel}, Abbreviations count: ${abbrs.length}`);
+
     setAvailableAbbreviations(abbrs);
-  }, [user.level]);
+  }, [user.level, levelId]);
 
   // Add keyboard event listener to start game on key press when in 'ready' state
   useEffect(() => {

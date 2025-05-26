@@ -173,6 +173,26 @@ export const getAbbreviationsForLevel = (level: number): Abbreviation[] => {
   return abbreviations.filter(abbr => abbr.unlockedAt <= level);
 };
 
+// Helper function to unlock all abbreviations up to a specific level
+export const unlockAbbreviationsForLevel = (level: number, currentUnlocked: Abbreviation[]): Abbreviation[] => {
+  // Get all abbreviations that should be unlocked up to this level
+  const shouldBeUnlocked = abbreviations.filter(abbr => abbr.unlockedAt <= level);
+
+  // Create a set of IDs that are already unlocked
+  const unlockedIds = new Set(currentUnlocked.map(abbr => abbr.id));
+
+  // Add any missing abbreviations to the current unlocked list
+  const newUnlocked = [...currentUnlocked];
+
+  for (const abbr of shouldBeUnlocked) {
+    if (!unlockedIds.has(abbr.id)) {
+      newUnlocked.push(abbr);
+    }
+  }
+
+  return newUnlocked;
+};
+
 // Helper function to modify level text to include references to unlocked abbreviations
 export const getLevelWithUnlockedAbbreviation = (level: GameLevel, _unlockedAbbreviation: Abbreviation | null): GameLevel => {
   // For each level, incorporate the abbreviation that corresponds to that level
