@@ -229,8 +229,17 @@ const Home: React.FC<HomeProps> = ({ user }) => {
       setHighestWPM(maxWPM);
 
       // Calculate average accuracy
-      const totalAccuracy = user.highScores.reduce((sum, score) => sum + score.accuracy, 0);
-      setAverageAccuracy(Math.round(totalAccuracy / user.highScores.length));
+      // Filter out scores with invalid accuracy values
+      const validScores = user.highScores.filter(score => 
+        typeof score.accuracy === 'number' && !isNaN(score.accuracy)
+      );
+
+      if (validScores.length > 0) {
+        const totalAccuracy = validScores.reduce((sum, score) => sum + score.accuracy, 0);
+        setAverageAccuracy(Math.round(totalAccuracy / validScores.length));
+      } else {
+        setAverageAccuracy(0);
+      }
     } else {
       // Set default values when there are no high scores
       setHighestWPM(0);

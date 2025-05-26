@@ -185,8 +185,15 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
 
   const averageAccuracy = useMemo(() => {
     if (user.highScores.length > 0) {
-      const totalAccuracy = user.highScores.reduce((sum, score) => sum + score.accuracy, 0);
-      return Math.round(totalAccuracy / user.highScores.length);
+      // Filter out scores with invalid accuracy values
+      const validScores = user.highScores.filter(score => 
+        typeof score.accuracy === 'number' && !isNaN(score.accuracy)
+      );
+
+      if (validScores.length === 0) return 0;
+
+      const totalAccuracy = validScores.reduce((sum, score) => sum + score.accuracy, 0);
+      return Math.round(totalAccuracy / validScores.length);
     }
     return 0;
   }, [user.highScores]);
