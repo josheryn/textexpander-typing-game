@@ -18,7 +18,6 @@ import { User } from './types'
 
 // Services
 import { getUser, saveUser, getUserFromLocalStorage, saveUserToLocalStorage } from './services/api'
-import { unlockAbbreviationsForLevel } from './data/gameData'
 
 const AppContainer = styled.div`
   display: flex;
@@ -63,85 +62,20 @@ function App() {
 
           if (userData) {
             console.log('User data loaded from API:', userData);
-
-            // Ensure all abbreviations up to the user's level are unlocked
-            const updatedUnlockedAbbreviations = unlockAbbreviationsForLevel(
-              userData.level,
-              userData.unlockedAbbreviations
-            );
-
-            // Only update if there are new abbreviations to unlock
-            if (updatedUnlockedAbbreviations.length > userData.unlockedAbbreviations.length) {
-              console.log(`Unlocking abbreviations for user level ${userData.level}. Before: ${userData.unlockedAbbreviations.length}, After: ${updatedUnlockedAbbreviations.length}`);
-
-              // Create updated user object
-              const updatedUser = {
-                ...userData,
-                unlockedAbbreviations: updatedUnlockedAbbreviations
-              };
-
-              // Update user state
-              setUser(updatedUser);
-
-              // Save to database
-              saveUser(updatedUser)
-                .then(success => {
-                  if (success) {
-                    console.log('User abbreviations updated successfully on login');
-                  } else {
-                    console.warn('Failed to save updated abbreviations to database on login, falling back to localStorage');
-                    saveUserToLocalStorage(updatedUser);
-                  }
-                })
-                .catch(error => {
-                  console.error('Error saving updated abbreviations to database on login:', error);
-                  saveUserToLocalStorage(updatedUser);
-                });
-            } else {
-              // No new abbreviations to unlock, just set the user
-              setUser(userData);
-            }
+            setUser(userData)
           } else {
             console.log('User data not found in API, trying localStorage');
             // If API fails, try localStorage as fallback
             const localUser = getUserFromLocalStorage(currentUser)
             if (localUser) {
               console.log('User data loaded from localStorage:', localUser);
+              setUser(localUser)
 
-              // Ensure all abbreviations up to the user's level are unlocked
-              const updatedUnlockedAbbreviations = unlockAbbreviationsForLevel(
-                localUser.level,
-                localUser.unlockedAbbreviations
-              );
-
-              // Only update if there are new abbreviations to unlock
-              if (updatedUnlockedAbbreviations.length > localUser.unlockedAbbreviations.length) {
-                console.log(`Unlocking abbreviations for local user level ${localUser.level}. Before: ${localUser.unlockedAbbreviations.length}, After: ${updatedUnlockedAbbreviations.length}`);
-
-                // Create updated user object
-                const updatedUser = {
-                  ...localUser,
-                  unlockedAbbreviations: updatedUnlockedAbbreviations
-                };
-
-                // Update user state
-                setUser(updatedUser);
-
-                // Try to save the updated local user to the API for future use
-                console.log('Syncing updated localStorage user to API');
-                saveUser(updatedUser).catch(err => 
-                  console.error('Failed to sync updated local user to API:', err)
-                );
-              } else {
-                // No new abbreviations to unlock, just set the user
-                setUser(localUser);
-
-                // Try to save the local user to the API for future use
-                console.log('Syncing localStorage user to API');
-                saveUser(localUser).catch(err => 
-                  console.error('Failed to sync local user to API:', err)
-                );
-              }
+              // Try to save the local user to the API for future use
+              console.log('Syncing localStorage user to API');
+              saveUser(localUser).catch(err => 
+                console.error('Failed to sync local user to API:', err)
+              )
             }
           }
         }
@@ -187,67 +121,15 @@ function App() {
 
       if (userData) {
         // User exists in API, use their data
-
-        // Ensure all abbreviations up to the user's level are unlocked
-        const updatedUnlockedAbbreviations = unlockAbbreviationsForLevel(
-          userData.level,
-          userData.unlockedAbbreviations
-        );
-
-        // Only update if there are new abbreviations to unlock
-        if (updatedUnlockedAbbreviations.length > userData.unlockedAbbreviations.length) {
-          console.log(`Unlocking abbreviations for user level ${userData.level} during login. Before: ${userData.unlockedAbbreviations.length}, After: ${updatedUnlockedAbbreviations.length}`);
-
-          // Create updated user object
-          const updatedUser = {
-            ...userData,
-            unlockedAbbreviations: updatedUnlockedAbbreviations
-          };
-
-          // Update user state
-          setUser(updatedUser);
-
-          // Save to database
-          await saveUser(updatedUser).catch(err => {
-            console.error('Failed to save updated user abbreviations during login:', err);
-          });
-        } else {
-          // No new abbreviations to unlock, just set the user
-          setUser(userData);
-        }
+        setUser(userData)
       } else {
         // Try to get user from localStorage as fallback
         const localUser = getUserFromLocalStorage(username)
 
         if (localUser) {
           // User exists in localStorage, use their data and sync to API
-
-          // Ensure all abbreviations up to the user's level are unlocked
-          const updatedUnlockedAbbreviations = unlockAbbreviationsForLevel(
-            localUser.level,
-            localUser.unlockedAbbreviations
-          );
-
-          // Only update if there are new abbreviations to unlock
-          if (updatedUnlockedAbbreviations.length > localUser.unlockedAbbreviations.length) {
-            console.log(`Unlocking abbreviations for local user level ${localUser.level} during login. Before: ${localUser.unlockedAbbreviations.length}, After: ${updatedUnlockedAbbreviations.length}`);
-
-            // Create updated user object
-            const updatedUser = {
-              ...localUser,
-              unlockedAbbreviations: updatedUnlockedAbbreviations
-            };
-
-            // Update user state
-            setUser(updatedUser);
-
-            // Save to database
-            await saveUser(updatedUser);
-          } else {
-            // No new abbreviations to unlock, just set the user and sync to API
-            setUser(localUser);
-            await saveUser(localUser);
-          }
+          setUser(localUser)
+          await saveUser(localUser)
         } else {
           // Create a new user
           const newUser: User = {
