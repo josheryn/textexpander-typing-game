@@ -308,14 +308,17 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
       return;
     }
 
-    // Reset game state
-    setGameState('ready');
-    setTypedText('');
-    setErrors(0);
-    setWpm(0);
-    setAccuracy(100);
-    setUnlockedAbbreviation(null);
-    setAbbreviationsUsed(0);
+    // Only reset game state if we're not in the 'finished' state
+    // This prevents resetting to 'ready' after completing a level
+    if (gameState !== 'finished') {
+      setGameState('ready');
+      setTypedText('');
+      setErrors(0);
+      setWpm(0);
+      setAccuracy(100);
+      setUnlockedAbbreviation(null);
+      setAbbreviationsUsed(0);
+    }
 
     // Ensure all abbreviations up to this level are unlocked
     const updatedUnlockedAbbreviations = unlockAbbreviationsForLevel(
@@ -566,14 +569,8 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
         updatedUser.lastUnlockedAbbreviation = currentAbbrevToUnlock;
       }
 
-      // Automatically progress to the next level after a short delay
-      // This will work regardless of whether we're using the database or localStorage
-      if (nextLevel) {
-        setTimeout(() => {
-          console.log(`Auto-progressing to Level ${nextLevelId} after completing Level ${levelId}`);
-          goToNextLevel();
-        }, 3000); // 3-second delay to allow the user to see their results
-      }
+      // We no longer automatically progress to the next level
+      // Instead, the user will click the "Next Level" button on the score summary screen
     }
 
     // Set the user with all updates in a single operation
@@ -647,6 +644,9 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
     // Get the next level before navigation
     const nextLevel = getLevelById(nextLevelId);
+
+    // Reset game state to ready before navigation
+    setGameState('ready');
 
     // Navigate to the next level
     navigate(`/game/${nextLevelId}`);

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { User } from '../types';
-import { gameLevels, unlockAbbreviationsForLevel, getLevelById } from '../data/gameData';
+import { gameLevels, unlockAbbreviationsForLevel } from '../data/gameData';
 import DatabaseStatus from '../components/DatabaseStatus';
 import { saveUser, saveUserToLocalStorage } from '../services/api';
 
@@ -210,7 +210,6 @@ const NoAbbreviations = styled.p`
 `;
 
 const Home: React.FC<HomeProps> = ({ user, setUser }) => {
-  const navigate = useNavigate();
   const [highestWPM, setHighestWPM] = useState(0);
   const [averageAccuracy, setAverageAccuracy] = useState(0);
 
