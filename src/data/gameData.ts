@@ -178,15 +178,17 @@ export const unlockAbbreviationsForLevel = (level: number, currentUnlocked: Abbr
   // Get all abbreviations that should be unlocked up to this level
   const shouldBeUnlocked = abbreviations.filter(abbr => abbr.unlockedAt <= level);
 
-  // Create a set of IDs that are already unlocked
-  const unlockedIds = new Set(currentUnlocked.map(abbr => abbr.id));
+  // Create a set of abbreviation strings that are already unlocked
+  const unlockedAbbreviationStrings = new Set(currentUnlocked.map(abbr => abbr.abbreviation));
 
   // Add any missing abbreviations to the current unlocked list
   const newUnlocked = [...currentUnlocked];
 
   for (const abbr of shouldBeUnlocked) {
-    if (!unlockedIds.has(abbr.id)) {
+    // Only add if this abbreviation string isn't already in the set
+    if (!unlockedAbbreviationStrings.has(abbr.abbreviation)) {
       newUnlocked.push(abbr);
+      unlockedAbbreviationStrings.add(abbr.abbreviation);
     }
   }
 

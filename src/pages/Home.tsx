@@ -303,7 +303,8 @@ const Home: React.FC<HomeProps> = ({ user, setUser }) => {
     }
   }, [user.highScores]);
 
-  // Filter unlocked abbreviations
+  // Use the user's unlocked abbreviations directly
+  // The unlockAbbreviationsForLevel function now prevents duplicates at the source
   const unlockedAbbreviations = user.unlockedAbbreviations;
 
   // Log unlocked abbreviations for debugging
