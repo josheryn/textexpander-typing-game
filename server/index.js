@@ -110,6 +110,15 @@ app.get('/api/users/:username', async (req, res) => {
       [username]
     );
 
+    // Log the scores for debugging
+    console.log(`Retrieved ${scoresResult.rows.length} scores for user ${username}`);
+    if (scoresResult.rows.length > 0) {
+      console.log('Sample score data:', {
+        firstScore: scoresResult.rows[0],
+        accuracyValues: scoresResult.rows.map(score => score.accuracy)
+      });
+    }
+
     // Get user's unlocked abbreviations
     const abbrevResult = await pool.query(
       'SELECT a.* FROM abbreviations a JOIN user_abbreviations ua ON a.id = ua.abbreviation_id WHERE ua.username = $1',
@@ -118,11 +127,50 @@ app.get('/api/users/:username', async (req, res) => {
 
     console.log(`Retrieved ${abbrevResult.rows.length} unlocked abbreviations for user ${username}`);
 
+    // Get all abbreviations that should be unlocked based on user's level
+    const allAbbreviationsResult = await pool.query(
+      'SELECT * FROM abbreviations WHERE unlocked_at <= $1',
+      [result.rows[0].level]
+    );
+
+    console.log(`Found ${allAbbreviationsResult.rows.length} abbreviations that should be unlocked for level ${result.rows[0].level}`);
+
+    // Combine explicitly unlocked abbreviations with those that should be unlocked based on level
+    const unlockedAbbreviationIds = new Set(abbrevResult.rows.map(row => row.id));
+    const combinedAbbreviations = [...abbrevResult.rows];
+
+    for (const abbr of allAbbreviationsResult.rows) {
+      if (!unlockedAbbreviationIds.has(abbr.id)) {
+        combinedAbbreviations.push(abbr);
+
+        // Also add to the user_abbreviations table for persistence
+        try {
+          await pool.query(
+            'INSERT INTO user_abbreviations (username, abbreviation_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [username, abbr.id]
+          );
+        } catch (err) {
+          console.error(`Error adding abbreviation ${abbr.id} to user_abbreviations:`, err);
+          // Continue with the next abbreviation even if this one fails
+        }
+      }
+    }
+
+    console.log(`Combined total of ${combinedAbbreviations.length} unlocked abbreviations for user ${username}`);
+
     // Get user's last unlocked abbreviation
     const lastAbbrevResult = await pool.query(
       'SELECT a.* FROM abbreviations a WHERE a.id = $1',
       [result.rows[0].last_unlocked_abbreviation_id]
     );
+
+    // Log the first score's accuracy value and type for debugging
+    if (scoresResult.rows.length > 0) {
+      console.log('First score accuracy value and type:', {
+        value: scoresResult.rows[0].accuracy,
+        type: typeof scoresResult.rows[0].accuracy
+      });
+    }
 
     const user = {
       username: result.rows[0].username,
@@ -130,11 +178,11 @@ app.get('/api/users/:username', async (req, res) => {
       highScores: scoresResult.rows.map(score => ({
         level: score.level,
         wpm: score.wpm,
-        accuracy: score.accuracy,
+        accuracy: Number(score.accuracy), // Convert accuracy to number
         date: score.date,
         abbreviationsUsed: score.abbreviations_used
       })),
-      unlockedAbbreviations: abbrevResult.rows.map(abbr => ({
+      unlockedAbbreviations: combinedAbbreviations.map(abbr => ({
         id: abbr.id,
         abbreviation: abbr.abbreviation,
         expansion: abbr.expansion,
@@ -268,7 +316,14 @@ app.get('/api/leaderboard', async (req, res) => {
     query += ' ORDER BY s.wpm DESC LIMIT 100';
 
     const result = await pool.query(query, params);
-    res.json(result.rows);
+
+    // Convert accuracy to number for each row
+    const formattedRows = result.rows.map(row => ({
+      ...row,
+      accuracy: Number(row.accuracy)
+    }));
+
+    res.json(formattedRows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

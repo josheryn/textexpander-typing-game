@@ -234,10 +234,21 @@ const Home: React.FC<HomeProps> = ({ user }) => {
         typeof score.accuracy === 'number' && !isNaN(score.accuracy)
       );
 
+      // Log accuracy values for debugging
+      console.log('Accuracy values:', user.highScores.map(score => ({
+        accuracy: score.accuracy,
+        type: typeof score.accuracy,
+        isValid: typeof score.accuracy === 'number' && !isNaN(score.accuracy)
+      })));
+      console.log('Valid scores for accuracy calculation:', validScores.length);
+
       if (validScores.length > 0) {
         const totalAccuracy = validScores.reduce((sum, score) => sum + score.accuracy, 0);
-        setAverageAccuracy(Math.round(totalAccuracy / validScores.length));
+        const calculatedAverage = Math.round(totalAccuracy / validScores.length);
+        console.log('Calculated average accuracy:', calculatedAverage, 'from total:', totalAccuracy);
+        setAverageAccuracy(calculatedAverage);
       } else {
+        console.log('No valid scores for accuracy calculation, setting to 0');
         setAverageAccuracy(0);
       }
     } else {
