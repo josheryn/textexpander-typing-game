@@ -250,6 +250,12 @@ const Home: React.FC<HomeProps> = ({ user }) => {
   // Filter unlocked abbreviations
   const unlockedAbbreviations = user.unlockedAbbreviations;
 
+  // Log unlocked abbreviations for debugging
+  console.log('Unlocked abbreviations in Home component:', { 
+    count: unlockedAbbreviations.length,
+    abbreviations: unlockedAbbreviations.map(abbr => abbr.abbreviation)
+  });
+
   return (
     <HomeContainer>
       <WelcomeSection>

@@ -116,6 +116,8 @@ app.get('/api/users/:username', async (req, res) => {
       [username]
     );
 
+    console.log(`Retrieved ${abbrevResult.rows.length} unlocked abbreviations for user ${username}`);
+
     // Get user's last unlocked abbreviation
     const lastAbbrevResult = await pool.query(
       'SELECT a.* FROM abbreviations a WHERE a.id = $1',
@@ -204,13 +206,18 @@ app.post('/api/users', async (req, res) => {
     }
 
     // Add unlocked abbreviations
-    if (unlockedAbbreviations && unlockedAbbreviations.length > 0) {
+    // Always process unlockedAbbreviations, even if it's an empty array
+    // This ensures the database state matches the client state
+    if (unlockedAbbreviations) {
+      console.log(`Processing ${unlockedAbbreviations.length} unlocked abbreviations for user ${username}`);
       for (const abbr of unlockedAbbreviations) {
         await client.query(
           'INSERT INTO user_abbreviations (username, abbreviation_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
           [username, abbr.id]
         );
       }
+    } else {
+      console.log(`No unlockedAbbreviations provided for user ${username}`);
     }
 
     // We don't add high scores here anymore
