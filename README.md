@@ -8,7 +8,7 @@ A web-based typing speed game that helps you improve your typing skills while un
 - **Performance Tracking**: Measure your typing speed (WPM) and accuracy
 - **TextExpander Integration**: Unlock abbreviations as you progress through levels
 - **Abbreviation Usage**: Use unlocked abbreviations to type faster in subsequent levels
-- **Persistent Storage**: Your progress, high scores, and unlocked abbreviations are saved
+- **Persistent Storage**: Your progress, high scores, and unlocked abbreviations are saved in a PostgreSQL database
 - **Leaderboard**: Compare your performance with other players
 - **User Profiles**: Track your stats and view your unlocked abbreviations
 
@@ -19,6 +19,18 @@ A web-based typing speed game that helps you improve your typing skills while un
 - React Router
 - Styled Components
 - Vite
+- Express.js (Backend server)
+- PostgreSQL (Database)
+
+## Architecture
+
+The application uses a three-tier architecture:
+
+1. **Frontend**: React application that provides the user interface
+2. **Backend**: Express.js server that handles API requests and database operations
+3. **Database**: PostgreSQL database for persistent data storage
+
+This architecture allows for data persistence across devices and sessions, enabling features like the leaderboard and user profiles.
 
 ## Getting Started
 
@@ -130,6 +142,7 @@ The deployment configuration is defined in the `.do/app.yaml` file, which specif
 - Output directory: `dist`
 - Environment: Node.js (version 18)
 - Routing configuration for SPA behavior
+- PostgreSQL database configuration for persistent data storage
 
 ### Troubleshooting Deployment Issues
 
@@ -142,6 +155,8 @@ If you encounter build issues on DigitalOcean App Platform:
 3. **Local Testing**: Before deploying, test the build process locally with `npm run build` to ensure it completes successfully.
 
 4. **Path Issues**: Ensure all asset paths in the application use relative paths (starting with `./`) rather than absolute paths (starting with `/`).
+
+For detailed information about the database setup, configuration, and usage, please refer to the [README.database.md](README.database.md) file.
 
 ## License
 
