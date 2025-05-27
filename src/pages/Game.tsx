@@ -189,6 +189,34 @@ const ResultButtons = styled.div`
   margin-top: 2rem;
 `;
 
+const AntiCheatDialog = styled.div`
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: rgba(204, 0, 0, 0.1);
+  border-radius: 8px;
+  border: 1px solid var(--error-color);
+`;
+
+const AntiCheatTitle = styled.h3`
+  color: var(--error-color);
+  margin-bottom: 1rem;
+`;
+
+const AntiCheatInput = styled.input`
+  width: 100%;
+  padding: 0.75rem;
+  font-family: var(--monospace-font);
+  font-size: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+  }
+`;
+
 const UnlockedAbbreviation = styled.div`
   margin-top: 2rem;
   padding: 1.5rem;
@@ -295,6 +323,12 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
   const [unlockedAbbreviation, setUnlockedAbbreviation] = useState<Abbreviation | null>(null);
   const [availableAbbreviations, setAvailableAbbreviations] = useState<Abbreviation[]>([]);
   const [abbreviationsUsed, setAbbreviationsUsed] = useState(0);
+  const [needsAntiCheatVerification, setNeedsAntiCheatVerification] = useState(false);
+  const [antiCheatVerificationText, setAntiCheatVerificationText] = useState('');
+  const [pendingScore, setPendingScore] = useState<{
+    updatedUser: User;
+    leaderboardEntry: LeaderboardEntry;
+  } | null>(null);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -573,31 +607,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
       // Instead, the user will click the "Next Level" button on the score summary screen
     }
 
-    // Set the user with all updates in a single operation
-    console.log('Updating user after completing level:', { 
-      username: updatedUser.username, 
-      oldLevel: user.level, 
-      newLevel: updatedUser.level,
-      passed
-    });
-    setUser(updatedUser);
-
-    // Explicitly save user data to database to ensure level persistence
-    saveUser(updatedUser)
-      .then(success => {
-        if (success) {
-          console.log('User level and unlocked abbreviations saved successfully to database');
-        } else {
-          console.warn('Failed to save user level to database, falling back to localStorage');
-          saveUserToLocalStorage(updatedUser);
-        }
-      })
-      .catch(error => {
-        console.error('Error saving user level to database:', error);
-        saveUserToLocalStorage(updatedUser);
-      });
-
-    // Add score to global leaderboard
+    // Create leaderboard entry
     const leaderboardEntry: LeaderboardEntry = {
       id: 0, // Temporary ID, will be replaced by the server
       username: user.username,
@@ -608,20 +618,64 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
       abbreviationsUsed
     };
 
-    // Try to save to API first, then fall back to localStorage if needed
-    addLeaderboardScore(leaderboardEntry)
-      .then(success => {
-        if (!success) {
-          console.warn('Failed to save score to API leaderboard, falling back to localStorage');
+    // Check if the score is suspiciously high (> 200 WPM)
+    if (calculatedWpm > 200) {
+      // Store the score data for later verification
+      setPendingScore({
+        updatedUser,
+        leaderboardEntry
+      });
+
+      // Set the anti-cheat verification flag
+      setNeedsAntiCheatVerification(true);
+
+      // Reset the verification text
+      setAntiCheatVerificationText('');
+
+      // Update the user state but don't save to database yet
+      setUser(updatedUser);
+    } else {
+      // Score is not suspiciously high, save it immediately
+
+      // Set the user with all updates in a single operation
+      console.log('Updating user after completing level:', { 
+        username: updatedUser.username, 
+        oldLevel: user.level, 
+        newLevel: updatedUser.level,
+        passed
+      });
+      setUser(updatedUser);
+
+      // Explicitly save user data to database to ensure level persistence
+      saveUser(updatedUser)
+        .then(success => {
+          if (success) {
+            console.log('User level and unlocked abbreviations saved successfully to database');
+          } else {
+            console.warn('Failed to save user level to database, falling back to localStorage');
+            saveUserToLocalStorage(updatedUser);
+          }
+        })
+        .catch(error => {
+          console.error('Error saving user level to database:', error);
+          saveUserToLocalStorage(updatedUser);
+        });
+
+      // Try to save to API first, then fall back to localStorage if needed
+      addLeaderboardScore(leaderboardEntry)
+        .then(success => {
+          if (!success) {
+            console.warn('Failed to save score to API leaderboard, falling back to localStorage');
+            // Fall back to localStorage
+            addLeaderboardScoreToLocalStorage(leaderboardEntry);
+          }
+        })
+        .catch(error => {
+          console.error('Error saving score to API leaderboard:', error);
           // Fall back to localStorage
           addLeaderboardScoreToLocalStorage(leaderboardEntry);
-        }
-      })
-      .catch(error => {
-        console.error('Error saving score to API leaderboard:', error);
-        // Fall back to localStorage
-        addLeaderboardScoreToLocalStorage(leaderboardEntry);
-      });
+        });
+    }
   };
 
   // Restart the game
@@ -633,8 +687,65 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
     setAccuracy(100);
     setUnlockedAbbreviation(null);
     setAbbreviationsUsed(0);
+    setNeedsAntiCheatVerification(false);
+    setAntiCheatVerificationText('');
+    setPendingScore(null);
 
     // Don't reset lastUnlockedAbbreviation here, as we want to keep it for the next level
+  };
+
+  // Handle anti-cheat verification
+  const handleVerification = () => {
+    // Check if the verification text matches exactly "I did not cheat"
+    if (antiCheatVerificationText.trim() === "I did not cheat") {
+      // Verification successful, save the score
+      if (pendingScore) {
+        const { updatedUser, leaderboardEntry } = pendingScore;
+
+        // Log the verification success
+        console.log('Anti-cheat verification successful, saving score:', { 
+          username: updatedUser.username, 
+          wpm: leaderboardEntry.wpm
+        });
+
+        // Save user data to database
+        saveUser(updatedUser)
+          .then(success => {
+            if (success) {
+              console.log('User level and unlocked abbreviations saved successfully to database');
+            } else {
+              console.warn('Failed to save user level to database, falling back to localStorage');
+              saveUserToLocalStorage(updatedUser);
+            }
+          })
+          .catch(error => {
+            console.error('Error saving user level to database:', error);
+            saveUserToLocalStorage(updatedUser);
+          });
+
+        // Save score to leaderboard
+        addLeaderboardScore(leaderboardEntry)
+          .then(success => {
+            if (!success) {
+              console.warn('Failed to save score to API leaderboard, falling back to localStorage');
+              // Fall back to localStorage
+              addLeaderboardScoreToLocalStorage(leaderboardEntry);
+            }
+          })
+          .catch(error => {
+            console.error('Error saving score to API leaderboard:', error);
+            // Fall back to localStorage
+            addLeaderboardScoreToLocalStorage(leaderboardEntry);
+          });
+
+        // Reset verification state
+        setNeedsAntiCheatVerification(false);
+        setPendingScore(null);
+      }
+    } else {
+      // Verification failed, show an alert
+      alert("Verification failed. Please type exactly: I did not cheat");
+    }
   };
 
   // Navigate to the next level
@@ -816,6 +927,22 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
             </StatItem>
           </ResultStats>
 
+          {needsAntiCheatVerification && (
+            <AntiCheatDialog>
+              <AntiCheatTitle>Verification Required</AntiCheatTitle>
+              <p>Your typing speed is exceptionally high. To verify this score, please type the following text exactly:</p>
+              <p style={{ fontWeight: 'bold', margin: '1rem 0' }}>I did not cheat</p>
+              <AntiCheatInput
+                type="text"
+                value={antiCheatVerificationText}
+                onChange={(e) => setAntiCheatVerificationText(e.target.value)}
+                placeholder="Type the verification text here..."
+                autoFocus
+              />
+              <PrimaryButton onClick={handleVerification}>Confirm</PrimaryButton>
+            </AntiCheatDialog>
+          )}
+
           {unlockedAbbreviation && (
             <UnlockedAbbreviation>
               <AbbreviationTitle>New Abbreviation Unlocked!</AbbreviationTitle>
@@ -829,7 +956,7 @@ const Game: React.FC<GameProps> = ({ user, setUser }) => {
 
           <ResultButtons>
             <PrimaryButton onClick={restartGame}>Try Again</PrimaryButton>
-            {wpm >= level.requiredWPM && level.id < 10 && (
+            {wpm >= level.requiredWPM && level.id < 10 && !needsAntiCheatVerification && (
               <PrimaryButton onClick={goToNextLevel}>Next Level</PrimaryButton>
             )}
             <SecondaryButton onClick={() => navigate('/')}>Back to Home</SecondaryButton>
